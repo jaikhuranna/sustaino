@@ -103,7 +103,7 @@ def generate_product_analysis(
         return_full_text=True
     )
 
-    final_output_text = ""
+    final_output_text = "C:\Users\kjaik\sustaino\sustaino\models\IMG_6296.jpeg"
     for text_segment in generated_text_stream:
         final_output_text += text_segment.token.text
 

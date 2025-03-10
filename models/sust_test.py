@@ -1,0 +1,117 @@
+import os
+import json
+import requests
+from dotenv import load_dotenv
+from tavily import TavilyClient
+from huggingface_hub import InferenceClient
+
+load_dotenv()
+print("Environment Keys Loaded:", os.getenv('HUGGINGFACE_API_KEY'))
+
+hf_api_key = os.getenv('HUGGINGFACE_API_KEY')
+if not hf_api_key:
+    raise ValueError("Hugging Face API Key not set in environment variable")
+
+text_generation_client = InferenceClient(token=hf_api_key, model="mistralai/Mistral-Nemo-Instruct-2407")
+
+tavily_api_key = os.getenv('TAVILY_API_KEY')
+if not tavily_api_key:
+    raise ValueError("Tavily API Key not set in environment variable")
+tavily_client = TavilyClient(api_key=tavily_api_key)
+
+def encode_image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return image_file.read()  # Return raw binary data instead of base64
+
+def analyze_image(image_path):
+    api_url = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
+    headers = {
+        "Authorization": f"Bearer {hf_api_key}",
+        "Content-Type": "image/jpeg"
+    }
+    image_data = encode_image_to_base64(image_path)  # Get raw binary data
+    
+    # Send the image as raw binary data in the request body
+    response = requests.post(api_url, headers=headers, data=image_data)
+    if response.status_code == 200:
+        return response.json()[0]["generated_text"]
+    else:
+        raise Exception(f"API request failed with status code {response.status_code}: {response.text}")
+
+def format_prompt_for_model(user_prompt, product_info=None):
+    system_context_prompt = (
+        f"You are a sustainability and health analyst specializing in consumer product evaluation. "
+        f"Your task is to analyze product information from the identified product and web research to provide: "
+        f"1. Product name and a short description (1-2 sentences) based on available data. "
+        f"2. Health rating score (0-100) based on ingredients, nutritional value, allergens, and health impacts. "
+        f"3. Sustainability score (0-100) based on packaging, recyclability, carbon footprint, and sourcing. "
+        f"Use the provided product details and web-sourced data for evidence-based analysis. "
+        f"Return your response strictly as a JSON object with these keys: "
+        f"'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
+        f"Include brief reasoning in the description for the scores. "
+        f"If data is insufficient, note it in the description and provide conservative estimates for scores."
+    )
+    
+    complete_prompt = user_prompt
+    if product_info:
+        complete_prompt = f"{user_prompt}\n\nWeb-sourced product information:\n{product_info}"
+    
+    combined_prompt = f"<s>[SYS] {system_context_prompt} [/SYS]\n[INST] {complete_prompt} [/INST]"
+    return combined_prompt
+
+def search_product_information(product_name):
+    try:
+        health_query = f"{product_name} nutritional value health impact"
+        health_results = tavily_client.search(query=health_query, search_depth="advanced")
+        
+        sustainability_query = f"{product_name} sustainability packaging environmental impact"
+        sustainability_results = tavily_client.search(query=sustainability_query, search_depth="advanced")
+        
+        health_info = "HEALTH DATA:\n"
+        for result in health_results.get('results', [])[:3]:
+            health_info += f"- {result.get('title')}: {result.get('content')[:200]}...\n"
+        
+        sustainability_info = "\nSUSTAINABILITY DATA:\n"
+        for result in sustainability_results.get('results', [])[:3]:
+            sustainability_info += f"- {result.get('title')}: {result.get('content')[:200]}...\n"
+        
+        return health_info + sustainability_info
+    except Exception as e:
+        return f"Error retrieving product information: {str(e)}"
+
+def generate_product_analysis(image_path):
+    product_text = analyze_image(image_path)
+    product_name = product_text.split("\n")[0].strip() if "\n" in product_text else " ".join(product_text.split()[0:2])
+    
+    product_info = search_product_information(product_name)
+    prompt = f"Analyze the following product based on this description:\n\n{product_text}"
+    
+    generation_parameters = dict(
+        temperature=0.2,
+        max_new_tokens=1024,
+        top_p=0.96,
+        repetition_penalty=1.0,
+        do_sample=True,
+        seed=42,
+    )
+
+    model_ready_prompt = format_prompt_for_model(prompt, product_info)
+    generated_text_stream = text_generation_client.text_generation(
+        model_ready_prompt,
+        **generation_parameters,
+        stream=True,
+        details=True,
+        return_full_text=True
+    )
+
+    final_output_text = ""
+    for text_segment in generated_text_stream:
+        final_output_text += text_segment.token.text
+
+    return final_output_text
+
+image_path = r"C:\Users\kjaik\sustaino\sustaino\models\7d25c8f8-debb-4331-bb4b-1cf217d4343b.jpg"
+
+result = generate_product_analysis(image_path)
+print("Generated Product Analysis:")
+print(result)
