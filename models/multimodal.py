@@ -174,3 +174,9 @@ def classify_product_category(raw_product_analysis):
     for text_segment in generated_text_stream:
         category += text_segment.token.text
     return category.strip()
+
+if __name__ == "__main__":
+    image_path = r"models\can.jpg"
+    result = generate_product_analysis(image_path)
+    print("Generated Product Analysis:")
+    print(result)

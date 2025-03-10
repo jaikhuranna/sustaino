@@ -1,7 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
-from multimodal import classify_product_category, generate_product_analysis, extract_json_from_markdown
+from .multimodal import classify_product_category, generate_product_analysis, extract_json_from_markdown
 
 load_dotenv()
 
@@ -54,14 +54,20 @@ DIY_CATEGORIES = {
     "foam_container": [
         {"name": "Pin Cushion", "youtube_link": "https://www.youtube.com/watch?v=opq90", "thumbnail": "https://img.youtube.com/vi/opq90/0.jpg"},
         {"name": "Stamp Block", "youtube_link": "https://www.youtube.com/watch?v=rst12", "thumbnail": "https://img.youtube.com/vi/rst12/0.jpg"},
-        {"name": "Kids’ Puzzle", "youtube_link": "https://www.youtube.com/watch?v=uvw34", "thumbnail": "https://img.youtube.com/vi/uvw34/0.jpg"}
+        {"name": "Kids' Puzzle", "youtube_link": "https://www.youtube.com/watch?v=uvw34", "thumbnail": "https://img.youtube.com/vi/uvw34/0.jpg"}
     ]
 }
 
-def generate_diy_suggestions(image_path):
-    # First get product analysis from multimodal
-    product_analysis_output = generate_product_analysis(image_path)
-
+def generate_diy_suggestions(product_analysis_output):
+    """
+    Generate DIY suggestions based on product analysis
+    
+    Args:
+        product_analysis_output (str): The raw product analysis text
+        
+    Returns:
+        str: JSON string containing DIY suggestions
+    """
     # Extract clean JSON
     product_json = extract_json_from_markdown(product_analysis_output)
     
