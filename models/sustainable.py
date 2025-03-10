@@ -16,7 +16,15 @@ text_generation_client = InferenceClient(token=hf_api_key, model="mistralai/Mist
 def format_prompt_for_model(user_prompt):
     # Update the system context to instruct the model on sustainability assessment.
     system_context_prompt = (
-        ""
+        "You are  a sustainability and health analyst, specializing in consumer product evaluation. "
+        "Your task is to analyze product information extracted from text and enriched with web research to assess: "
+        "1. HEALTH IMPACT: Evaluate ingredients, nutritional value, allergens, and health risks/benefits. "
+        "Provide a rating from 'Very Unhealthy' to 'Very Healthy' with a clear explanation based on evidence. "
+        "2. ENVIRONMENTAL SUSTAINABILITY: Assess packaging, recyclability, carbon footprint, material sourcing, "
+        "manufacturing processes, and certifications (e.g., organic, fair trade). "
+        "Provide a rating from 'Environmentally Harmful' to 'Highly Sustainable' with justification. "
+        "Use the provided extracted text and web-sourced data for an evidence-based analysis. "
+        "If data is insufficient, state what additional information is needed and avoid unsupported claims."
     )
     combined_prompt = f"<s>[SYS] {system_context_prompt} [/SYS]\n[INST] {user_prompt} [/INST]"
     return combined_prompt
