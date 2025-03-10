@@ -27,7 +27,7 @@ def extract_json_from_markdown(text):
 
 
 def format_alternatives_prompt(original_product_json):
-    system_context_prompt = "You are a sustainability and health analyst tasked with suggesting better alternatives to a consumer product. Based on the provided product analysis (in JSON format), suggest one alternative product that improves on either health or sustainability (or both). Provide: 1. The alternative product name. 2. A brief reason (1-2 sentences) explaining why it's better, referencing the original product's health_score and sustainability_score. Return your response strictly as a JSON object with keys: 'alternative_product' and 'reason'. Use your knowledge to suggest a realistic alternative; if data is insufficient, make a reasonable assumption and note it in the reason."
+    system_context_prompt = "You are a sustainability and health analyst tasked with suggesting better alternatives to a consumer product. Based on the provided product analysis (in JSON format), suggest two alternative product that improves on either health or sustainability (or both). Provide: 1. The alternative product name. 2. A brief reason (1-2 sentences) explaining why it's better, referencing the original product's health_score and sustainability_score. Return your response strictly as a JSON object with keys: 'alternative_product' and 'reason'. Use your knowledge to suggest a realistic alternative; if data is insufficient, make a reasonable assumption and note it in the reason."
 
     complete_prompt = f"Analyze this product JSON and suggest a better alternative:\n\n{original_product_json}"
 

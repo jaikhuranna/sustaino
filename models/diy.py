@@ -1,15 +1,9 @@
 import os
 import json
 from dotenv import load_dotenv
-from huggingface_hub import InferenceClient
-from sustainable import generate_product_analysis
+from multimodal import classify_product_category, generate_product_analysis, extract_json_from_markdown
 
 load_dotenv()
-
-hf_api_key = os.getenv('HUGGINGFACE_API_KEY')
-if not hf_api_key:
-    raise ValueError("Hugging Face API Key not set in environment variable")
-text_generation_client = InferenceClient(token=hf_api_key, model="mistralai/Mistral-Nemo-Instruct-2407")
 
 DIY_CATEGORIES = {
     "plastic_bottle": [
@@ -64,42 +58,34 @@ DIY_CATEGORIES = {
     ]
 }
 
-def format_category_prompt(product_json):
-    system_context_prompt = f"You are a classifier tasked with determining the material category of a scanned product based on its JSON analysis. Given the product name and description, classify it into one of these categories: plastic_bottle, aluminum_can, glass_bottle, cardboard_box, polythene_bag, paper_waste, chip_packet, plastic_box, tin_box, foam_container, or 'unknown' if it doesn’t fit. Return only the category name as plain text, nothing else."
-    complete_prompt = f"Classify this product:\n\n{product_json}"
-    combined_prompt = f"<s>[SYS] {system_context_prompt} [/SYS]\n[INST] {complete_prompt} [/INST]"
-    return combined_prompt
+def generate_diy_suggestions(image_path):
+    # First get product analysis from multimodal
+    product_analysis_output = generate_product_analysis(image_path)
 
-def generate_diy_suggestions(extracted_text):
-    final_output_text = generate_product_analysis(extracted_text)
+    # Extract clean JSON
+    product_json = extract_json_from_markdown(product_analysis_output)
     
     try:
-        product_data = json.loads(final_output_text)
-        sustainability_score = product_data['sustainability_score']
+        product_data = json.loads(product_json)
+        sustainability_score = product_data.get('sustainability_score', 0)
+        
         if sustainability_score >= 70:
-            return json.dumps({"diy_ideas": [], "message": "Sustainability score >= 70, no DIY suggestions provided."})
-    except (json.JSONDecodeError, KeyError) as e:
-        return json.dumps({"diy_ideas": [], "message": f"Error parsing product data: {str(e)}"})
-
-    prompt = format_category_prompt(final_output_text)
-    generation_parameters = dict(
-        temperature=0.1,
-        max_new_tokens=20,
-        top_p=0.9,
-        repetition_penalty=1.0,
-        do_sample=False,
-        seed=42,
-    )
-
-    generated_text_stream = text_generation_client.text_generation(prompt, **generation_parameters, stream=True, details=True, return_full_text=True)
-    category = ""
-    for text_segment in generated_text_stream:
-        category += text_segment.token.text
-    category = category.strip()
-
-    if category in DIY_CATEGORIES:
-        diy_ideas = DIY_CATEGORIES[category]
-    else:
-        diy_ideas = []
-
+            return json.dumps({
+                "diy_ideas": [],
+                "message": "Sustainability score >= 70, no DIY suggestions provided."
+            })
+    except json.JSONDecodeError as e:
+        return json.dumps({
+            "diy_ideas": [],
+            "message": f"Error parsing product data: {str(e)}"
+        })
+    
+    # Classify the category
+    category = classify_product_category(product_json).lower().strip().replace("</s>", "")
+    
+    print("Classified category:", category)  # for debugging
+    
+    # Return DIY ideas directly from hardcoded categories
+    diy_ideas = DIY_CATEGORIES.get(category, [])
+    
     return json.dumps({"diy_ideas": diy_ideas})

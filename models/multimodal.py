@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import requests
 from dotenv import load_dotenv
 from tavily import TavilyClient
@@ -39,7 +40,7 @@ def analyze_image(image_path):
 
 def format_prompt_for_model(user_prompt, product_info=None):
     system_context_prompt = (
-        f"You are an expert sustainability and health analyst specializing in evaluating consumer products. "
+        "You are an expert sustainability and health analyst specializing in evaluating consumer products. "
         "Your role is to critically analyze extracted text from product descriptions, labels, or related documents, "
         "and combine it with web-sourced data to provide an evidence-based assessment. "
         "Follow these steps:\n"
@@ -87,7 +88,6 @@ def search_product_information(product_name):
         return f"Error retrieving product information: {str(e)}"
 
 def generate_product_analysis(image_path):
-
     try:
         product_text = analyze_image(image_path)
         product_name = product_text.split("\n")[0].strip() if "\n" in product_text else " ".join(product_text.split()[0:2])
@@ -130,8 +130,47 @@ def generate_product_analysis(image_path):
         })
         return error_json
 
-if __name__ == "__main__":
-    image_path = r"C:\Users\kjaik\sustaino\sustaino\models\7d25c8f8-debb-4331-bb4b-1cf217d4343b.jpg"
-    result = generate_product_analysis(image_path)
-    print("Generated Product Analysis:")
-    print(result)
+def extract_json_from_markdown(text):
+    """
+    Extracts the JSON block from a markdown-formatted string.
+    """
+    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if json_match:
+        return json_match.group(1)
+    return text
+
+def classify_product_category(raw_product_analysis):
+    """
+    Classify the product into a material category.
+    This function extracts the JSON portion from the analysis and uses an LLM to determine the category.
+    """
+    # Extract JSON block from the analysis output
+    json_text = extract_json_from_markdown(raw_product_analysis)
+    
+    system_context_prompt = (
+        "You are a classifier tasked with determining the material category of a scanned product based on its JSON analysis. "
+        "Given the product name and description, classify it into one of these categories: "
+        "plastic_bottle, aluminum_can, glass_bottle, cardboard_box, polythene_bag, paper_waste, chip_packet, plastic_box, tin_box, foam_container. "
+        "Return only the category name as plain text, nothing else."
+    )
+    complete_prompt = f"Classify this product:\n\n{json_text}"
+    combined_prompt = f"<s>[SYS] {system_context_prompt} [/SYS]\n[INST] {complete_prompt} [/INST>"
+    generation_parameters = dict(
+        temperature=0.1,
+        max_new_tokens=20,
+        top_p=0.9,
+        repetition_penalty=1.0,
+        do_sample=False,
+        seed=42,
+    )
+    category = ""
+    generated_text_stream = text_generation_client.text_generation(
+        combined_prompt,
+        **generation_parameters,
+        stream=True,
+        details=True,
+        return_full_text=True,
+    )
+    for text_segment in generated_text_stream:
+        category += text_segment.token.text
+    return category.strip()
