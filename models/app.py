@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models.sustainable import generate_sustainability_assessment
+from models.sustainable import generate_product_analysis
 
 app = Flask(__name__)
 CORS(app)
@@ -16,7 +16,7 @@ def check_sustainability():
             return jsonify({'error': 'No product description provided'}), 400
 
         # Generate the sustainability assessment using the model
-        sustainability_assessment = generate_sustainability_assessment(product_description)
+        sustainability_assessment = generate_product_analysis(product_description)
 
         return jsonify({'sustainability_assessment': sustainability_assessment})
     except Exception as e:

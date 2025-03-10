@@ -41,7 +41,20 @@ if USE_DUMMY_DB:
         def __init__(self):
             self.collections = {
                 "ocr_requests": {
-                    "doc1": {"extracted_text": "Test text from dummy DB", "processed": False},
+                    "doc1": {"extracted_text": '''### Nutritional Information  
+- **Serving size**: Usually 200ml or 355ml per bottle[3][7].  
+- **Calories**: Approximately 44 kcal per 100ml or 150 kcal per 355ml serving[3][7].  
+- **Total sugars**: Around 10.6g per 100ml or 39g per 355ml[3][7].  
+- **Sodium**: 8.5mg per 100ml or 85mg per 355ml[3][7].  
+- **Caffeine**: ~8.7mg per 100g[3].  
+
+### Ingredients  
+- Carbonated water  
+- Sugar or cane sugar  
+- Acidity regulator (e.g., phosphoric acid)  
+- Caramel color (150d)  
+- Natural flavorings  
+- Caffeine[3][7].''', "processed": False},
                     "doc2": {"extracted_text": "", "processed": False},  # This document has no text
                     "doc3": {"extracted_text": "Already processed text", "processed": True},
                     "doc4": {"extracted_text": "Already processed text", "processed": False},
@@ -64,7 +77,7 @@ else:
 # fastapi
 
 from fastapi import FastAPI
-from models.sustainable import generate_sustainability_assessment   
+from models.sustainable import generate_product_analysis   
 
 app = FastAPI()
 
@@ -89,7 +102,7 @@ def process_ocr_requests():
 
                 print(f"Processing document {doc.id} with text: {extracted_text}")
                 try:
-                    suggestions = generate_sustainability_assessment(extracted_text)
+                    suggestions = generate_product_analysis(extracted_text)
 
                     # Update the document with the model response, mark it as processed,
                     # and add a timestamp (dummy value for now)
