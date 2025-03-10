@@ -80,7 +80,7 @@ class DataModel {
                 if success, let url = url {
                     print("✅ Upload successful: \(url)")
                     self?.uploadedImageURL = url
-                    self?.showConfirmation()
+//                    self?.showConfirmation()
                     completion(url)
                     
                     
@@ -93,12 +93,12 @@ class DataModel {
     }
     
     /// Show confirmation alert
-    private func showConfirmation() {
-        let alert = UIAlertController(title: "Success", message: "Image uploaded successfully!", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        
-        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-            rootVC.present(alert, animated: true, completion: nil)
-        }
-    }
+//    private func showConfirmation() {
+//        let alert = UIAlertController(title: "Success", message: "Image uploaded successfully!", preferredStyle: .alert)
+//        alert.addAction(UIAlertAction(title: "OK", style: .default))
+//        
+//        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+//            rootVC.present(alert, animated: true, completion: nil)
+//        }
+//    }
 }
