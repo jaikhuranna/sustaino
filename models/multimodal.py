@@ -21,7 +21,7 @@ tavily_client = TavilyClient(api_key=tavily_api_key)
 
 def encode_image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
-        return image_file.read()  # Return raw binary data instead of base64
+        return image_file.read()  
 
 def analyze_image(image_path):
     api_url = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
@@ -29,9 +29,8 @@ def analyze_image(image_path):
         "Authorization": f"Bearer {hf_api_key}",
         "Content-Type": "image/jpeg"
     }
-    image_data = encode_image_to_base64(image_path)  # Get raw binary data
+    image_data = encode_image_to_base64(image_path)
     
-    # Send the image as raw binary data in the request body
     response = requests.post(api_url, headers=headers, data=image_data)
     if response.status_code == 200:
         return response.json()[0]["generated_text"]
@@ -88,38 +87,51 @@ def search_product_information(product_name):
         return f"Error retrieving product information: {str(e)}"
 
 def generate_product_analysis(image_path):
-    product_text = analyze_image(image_path)
-    product_name = product_text.split("\n")[0].strip() if "\n" in product_text else " ".join(product_text.split()[0:2])
-    
-    product_info = search_product_information(product_name)
-    prompt = f"Analyze the following product based on this description:\n\n{product_text}"
-    
-    generation_parameters = dict(
-        temperature=0.2,
-        max_new_tokens=1024,
-        top_p=0.96,
-        repetition_penalty=1.0,
-        do_sample=True,
-        seed=42,
-    )
 
-    model_ready_prompt = format_prompt_for_model(prompt, product_info)
-    generated_text_stream = text_generation_client.text_generation(
-        model_ready_prompt,
-        **generation_parameters,
-        stream=True,
-        details=True,
-        return_full_text=True
-    )
+    try:
+        product_text = analyze_image(image_path)
+        product_name = product_text.split("\n")[0].strip() if "\n" in product_text else " ".join(product_text.split()[0:2])
+        
+        product_info = search_product_information(product_name)
+        prompt = f"Analyze the following product based on this description:\n\n{product_text}"
+        
+        generation_parameters = dict(
+            temperature=0.2,
+            max_new_tokens=1024,
+            top_p=0.96,
+            repetition_penalty=1.0,
+            do_sample=True,
+            seed=42,
+        )
 
-    final_output_text = ""
-    for text_segment in generated_text_stream:
-        final_output_text += text_segment.token.text
+        model_ready_prompt = format_prompt_for_model(prompt, product_info)
+        generated_text_stream = text_generation_client.text_generation(
+            model_ready_prompt,
+            **generation_parameters,
+            stream=True,
+            details=True,
+            return_full_text=True
+        )
 
-    return final_output_text
+        final_output_text = ""
+        for text_segment in generated_text_stream:
+            final_output_text += text_segment.token.text
 
-image_path = r"C:\Users\kjaik\sustaino\sustaino\models\7d25c8f8-debb-4331-bb4b-1cf217d4343b.jpg"
+        return final_output_text
+    except Exception as e:
+        error_json = json.dumps({
+            "error": str(e),
+            "product_info": {
+                "name": "Error",
+                "description": f"Failed to analyze image: {str(e)}"
+            },
+            "health_score": 0,
+            "sustainability_score": 0
+        })
+        return error_json
 
-result = generate_product_analysis(image_path)
-print("Generated Product Analysis:")
-print(result)
+if __name__ == "__main__":
+    image_path = r"C:\Users\kjaik\sustaino\sustaino\models\7d25c8f8-debb-4331-bb4b-1cf217d4343b.jpg"
+    result = generate_product_analysis(image_path)
+    print("Generated Product Analysis:")
+    print(result)
