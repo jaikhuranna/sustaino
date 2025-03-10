@@ -114,6 +114,7 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             return section
         }
         return layout }
+    
     private func checkCameraPermissions() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
