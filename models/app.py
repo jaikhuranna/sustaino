@@ -4,19 +4,8 @@ import re
 import pandas as pd #type:ignore
 from flask import Flask, request, jsonify, send_from_directory #type:ignore
 from flask_cors import CORS #type:ignore
-from model import generate_legal_suggestions  # Import the generate function from another module
+from models.sustainable import generate_legal_suggestions  # Import the generate function from another module
 import subprocess
-
-app = Flask(__name__, static_folder='frontend/text-extraction-app/build')
-CORS(app)
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
 
 def load_ipc_dataset():
     """
