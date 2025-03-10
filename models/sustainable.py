@@ -19,15 +19,16 @@ tavily_client = TavilyClient(api_key=tavily_api_key)
 
 def format_prompt_for_model(user_prompt, product_info=None):
     system_context_prompt = (
-        "You are  a sustainability and health analyst, specializing in consumer product evaluation. "
-        "Your task is to analyze product information extracted from text and enriched with web research to assess: "
-        "1. HEALTH IMPACT: Evaluate ingredients, nutritional value, allergens, and health risks/benefits. "
-        "Provide a rating from 'Very Unhealthy' to 'Very Healthy' with a clear explanation based on evidence. "
-        "2. ENVIRONMENTAL SUSTAINABILITY: Assess packaging, recyclability, carbon footprint, material sourcing, "
-        "manufacturing processes, and certifications (e.g., organic, fair trade). "
-        "Provide a rating from 'Environmentally Harmful' to 'Highly Sustainable' with justification. "
-        "Use the provided extracted text and web-sourced data for an evidence-based analysis. "
-        "If data is insufficient, state what additional information is needed and avoid unsupported claims."
+        f"You are a sustainability and health analyst specializing in consumer product evaluation. "
+        f"Your task is to analyze product information from extracted text and web research to provide: "
+        f"1. Product name and a short description (1-2 sentences) based on available data. "
+        f"2. Health rating score (0-100) based on ingredients, nutritional value, allergens, and health impacts. "
+        f"3. Sustainability score (0-100) based on packaging, recyclability, carbon footprint, and sourcing. "
+        f"Use the provided extracted text and web-sourced data for evidence-based analysis. "
+        f"Return your response strictly as a JSON object with these keys: "
+        f"'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
+        f"Include brief reasoning in the description for the scores. "
+        f"If data is insufficient, note it in the description and provide conservative estimates for scores."
     )
     
     complete_prompt = user_prompt
