@@ -1,50 +1,26 @@
-import os
-import csv
-import re
-import pandas as pd #type:ignore
-from flask import Flask, request, jsonify, send_from_directory #type:ignore
-from flask_cors import CORS #type:ignore
-from models.sustainable import generate_legal_suggestions  # Import the generate function from another module
-import subprocess
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from models.sustainable import generate_sustainability_assessment
 
-def load_ipc_dataset():
-    """
-    Loads the IPC dataset from a CSV file.
+app = Flask(__name__)
+CORS(app)
 
-    Returns:
-        A list of data rows (as lists) if the file is found, otherwise an error message.
-    """
-
-    dataset_filepath = "resources/fir-ipc_dataset.csv"
-
-    try:
-        with open(dataset_filepath, "r", encoding="utf-8") as csvfile:
-            csv_reader = csv.reader(csvfile)
-            headers = next(csv_reader)  # Store the headers for potential use later
-            dataset_data = list(csv_reader)
-            return dataset_data
-
-    except FileNotFoundError:
-        return "Can't find dataset, please try again"
-
-
-@app.route('/suggest_ipc', methods=['POST'])
-def suggest_ipc():
+@app.route('/check-sustainability', methods=['POST'])
+def check_sustainability():
     try:
         data = request.json
-        extracted_text = data.get('extracted_text', '')
+        # Use a descriptive key, e.g., "product_description"
+        product_description = data.get('product_description', '')
 
-        if not extracted_text:
-            return jsonify({'error': 'No extracted text provided'}), 400
+        if not product_description:
+            return jsonify({'error': 'No product description provided'}), 400
 
-        # Generate IPC suggestions using the LLM model
-        ipc_suggestions = generate_legal_suggestions(extracted_text)
+        # Generate the sustainability assessment using the model
+        sustainability_assessment = generate_sustainability_assessment(product_description)
 
-        return jsonify({'ipc_suggestions': ipc_suggestions})
+        return jsonify({'sustainability_assessment': sustainability_assessment})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    
 if __name__ == '__main__':
     app.run(debug=True)
-
