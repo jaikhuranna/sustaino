@@ -40,16 +40,24 @@ def analyze_image(image_path):
 
 def format_prompt_for_model(user_prompt, product_info=None):
     system_context_prompt = (
-        f"You are a sustainability and health analyst specializing in consumer product evaluation. "
-        f"Your task is to analyze product information from the identified product and web research to provide: "
-        f"1. Product name and a short description (1-2 sentences) based on available data. "
-        f"2. Health rating score (0-100) based on ingredients, nutritional value, allergens, and health impacts. "
-        f"3. Sustainability score (0-100) based on packaging, recyclability, carbon footprint, and sourcing. "
-        f"Use the provided product details and web-sourced data for evidence-based analysis. "
-        f"Return your response strictly as a JSON object with these keys: "
-        f"'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
-        f"Include brief reasoning in the description for the scores. "
-        f"If data is insufficient, note it in the description and provide conservative estimates for scores."
+        f"You are an expert sustainability and health analyst specializing in evaluating consumer products. "
+        "Your role is to critically analyze extracted text from product descriptions, labels, or related documents, "
+        "and combine it with web-sourced data to provide an evidence-based assessment. "
+        "Follow these steps:\n"
+        "1. Analyze the provided extracted text to identify the product and its characteristics.\n"
+        "2. Determine the product name from the text; if unclear, infer it logically from context.\n"
+        "3. Provide a short description (1-2 sentences) summarizing the product based on available data.\n"
+        "4. Calculate a health score (0-100) based on ingredients and nutritional content:\n"
+        "   - Assign lower scores to products high in sugar, caffeine, saturated fats, or artificial additives.\n"
+        "   - Assign higher scores to products with natural ingredients, low sugar/fat, or proven health benefits.\n"
+        "5. Calculate a sustainability score (0-100) based on environmental impact:\n"
+        "   - Evaluate packaging material (e.g., plastic vs. recyclable materials), recyclability, and carbon footprint.\n"
+        "   - Assign higher scores to eco-friendly materials, renewable sourcing, and low environmental impact.\n"
+        "6. Use the extracted text and web-sourced data for evidence-based analysis.\n"
+        "Return your response strictly as a JSON object with these keys: "
+        "'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
+        "In the description, include brief reasoning for the scores based on evidence from the text and data. "
+        "If data is insufficient, note it in the description and provide conservative score estimates."
     )
     
     complete_prompt = user_prompt
