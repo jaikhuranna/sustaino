@@ -35,27 +35,6 @@ async def analyze_product(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 
-@app.post("/suggest-alternatives/")
-async def suggest_alternatives(file: UploadFile = File(...)):
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
-        shutil.copyfileobj(file.file, temp_file)
-        temp_path = temp_file.name
-
-    try:
-
-        analysis_result = generate_product_analysis(temp_path)
-
-        alternatives_result = generate_alternative_suggestion(analysis_result)
-
-        os.unlink(temp_path)
-
-        return {"analysis": analysis_result, "alternatives": alternatives_result}
-    except Exception as e:
-        os.unlink(temp_path)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.post("/analyze-with-alternatives/")
 async def analyze_with_alternatives(analysis_json: Dict[str, Any]):
 
