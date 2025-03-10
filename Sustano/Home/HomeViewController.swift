@@ -8,9 +8,12 @@
 import UIKit
 import AVFoundation
 
-class HomeViewController: UIViewController {
+class HomeViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
-    private var capturedImage: UIImage?
+    
+    
+    @IBOutlet var collectionView: UICollectionView!
+    public static var capturedImage: UIImage?
     
     private let previewLayer = AVCaptureVideoPreviewLayer()
     private var captureSession: AVCaptureSession!
@@ -23,22 +26,23 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        viewportView.layer.cornerRadius = 12
-        print("KMS i will")
+        collectionView.delegate = self
+        collectionView.dataSource = self
         
+        collectionView.collectionViewLayout = generateLayout()
+        
+        navigationController?.navigationBar.backItem?.hidesBackButton = true
+        print("KMS i will")
         setupCameraSession()
         checkCameraPermissions()
-        
-        // Do any additional setup after loading the view.
+        viewportView.layer.cornerRadius = 12
     }
     
     @IBAction func checkButtonTapped(_ sender: Any) {
         let photoSettings = AVCapturePhotoSettings()
-        // Optional: Add other settings if needed
         photoSettings.flashMode = .auto
-        photoSettings.isHighResolutionPhotoEnabled = false // Default is false anyway
+        photoSettings.isHighResolutionPhotoEnabled = false // Default is false anyway IDK YE KYO CHAHIYE
         
-        // No maxPhotoDimensions set — uses default resolution
         photoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
@@ -75,6 +79,7 @@ class HomeViewController: UIViewController {
             previewLayer.frame = viewportView.bounds
             
             viewportView.layer.addSublayer(previewLayer)
+            viewportView.clipsToBounds = true
             
         } catch {
             print("Error setting up camera input: \(error.localizedDescription)")
@@ -82,9 +87,36 @@ class HomeViewController: UIViewController {
         }
     }
     
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        DataModel.lastScansImages.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "lastScan", for: indexPath) as? LastScanCollectionViewCell else {
+               return UICollectionViewCell()
+           }
+        
+        cell.lastScanImageView.image = DataModel.lastScansImages[indexPath.item]
+        cell.lastScanImageView.layer.cornerRadius = 10
+        return cell
+    }
+    
+    func generateLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout{
+            (Section, env) -> NSCollectionLayoutSection? in
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(151))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 10
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 10, trailing: 10)
+            return section
+        }
+        return layout }
     private func checkCameraPermissions() {
-            switch AVCaptureDevice.authorizationStatus(for: .video) {
-            case .authorized:
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
                 captureSession.startRunning()
                 
             case .notDetermined:
@@ -113,18 +145,8 @@ class HomeViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        captureSession.stopRunning()
+//        captureSession.stopRunning()
     }
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
     
 }
 
@@ -141,7 +163,14 @@ extension HomeViewController: AVCapturePhotoCaptureDelegate {
             return
         }
         
-        capturedImage = image
+        HomeViewController.capturedImage = image
+        
+        DataModel.lastScansImages.append(image)
+        
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+        }
+        
         print("Image captured and saved to capturedImage")
     }
     
