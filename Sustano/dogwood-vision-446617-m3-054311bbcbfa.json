@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "dogwood-vision-446617-m3",
+  "private_key_id": "054311bbcbfa6948a04027a46009419a99aa1201",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCN/xWIJrKJOMk7\nBWt8fzcAOt9/b4e+h9a2DLn3dXMGH4uLvUxl3yZzdI0X2hHJEc74VZTmu5O574n6\nrwUHG1bf1vR9aRNl7oEB6mXuoILM47zqGCyz4cLIWrcJzh9cfkX1MXAt+Utxrh/x\n23k7oEBG+hcYGnd05mm/WSn/tL7VKKsfnf5sVjm7St71hdv0NnmcGet2pkry7BZs\nuEI39bcw0jx1Rv27PxaivhZlivqkVT333mHVsbhAMToB7zTLYn8QlqgcHJbjlZh0\n/6hEhzqmoFVJG3AQWmITmIsxMKQnGOjQbrjv9/MoBXvIRBPz1itgnptylIPhCzvF\ncpjx+gt/AgMBAAECggEAPefj30PfumuDb7PhNJnRxMvl/I0HRU27kgriWLxftV+z\nWuzgjdlHzjYV/TwZXOviq+nDzQQiV4HTSfNb4clNirEQTkytJFdi7w7d+bcIz4LK\nLdT0SEg4v1itTB0NFyoGHeu72I9DEQC09KCWriQjYc5OmzeOtOxvVfjtkomeWReH\nol2UrHi6euuKE+SUc6UFV/Y5GK3CU+i/HArH1teSbsIG7trFx5WHEDGnuWL52NO1\nCNzofz9A5UCyx4WdBjLa9QsZNqYIPK3cXEe5elsgO/1/ROH4z63KejaMrQBR6v2m\nY9QyobBdPkgM7mR/VY1uCSvrnEPmcqjVYnFParsS4QKBgQDApkCEau9kL1H8TfWb\nC1ZbYlxhLHAxjtnHARNidTsQ+JswoG6dzuhVokVVdvqydbTwaYxPnffhu5NNsE4L\nitVojPFankrDwTYGBzxIOSdI5yYNDIsyqI9/ei8GWPH9KbmrOMMPQGHm0zlsWinp\nRsW793pcV+uBlajqqvCLmuw7pQKBgQC8sLnX0HfwW5IyZuvkOi59Xrr8cqX2ZZXH\nC4GSzJcV1oyB/FMnhuJS/uNpfhyQVBB2ljlCGPpiG4WWhISOdsbsFNkbKFBY7xGK\nYa9A6tPKHh0bTwJxyaVzGmylmxgQJftYGawbULqBnAi1F9wvY3GHCpR89gltnDVE\nNThQZR3RUwKBgQCKt6uBLdbOltw8Bo6xY4p9JuhJ+EuZA7mAeB/TJ4Kuh7SHYR4F\nd7UH5F50WcXOtr7g1b94nNCetAgvSqIH4aIlNEed7pj7N6aE1LTtdGn7LqXRg5S/\nl2wsaHhv45/roR3WUnryAnP8V1/jy1Cebp126Y4r7AriNjd5Mjke7SDpGQKBgQCJ\nQGe+UxabUJCUdwcJeUTNzvVmoiKUiyoaogT7ejRAH1MPTjJSYywHwP48gw5V8cAT\n8ovtx2uBp5FRfk1Jr55cpYGS3o0rU6LHrOyk5Otvbt4vOhaGHG5rvoHfKGSlgmtE\nl0/4go1Xr98pkxSHp+cxmoGOMA2FnIWmeqve1t6MnwKBgQCMw9hsWpWST4/p2bmf\nON6Fb7mA+Ou9/Xz0eZtTU9LYqZxpo4d6g+r3SuvxHE640i3KpPZ81R6ZjPFLvWu9\n+1oQjd38ssOvyU44zYcYt6ZNVKlDnTpyRW9nuk1qYwhIUwXfjCpsAtkxn/RweQFx\nyT+fIDpnM7duxE+6+g+VIYe2dQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "jai-493@dogwood-vision-446617-m3.iam.gserviceaccount.com",
+  "client_id": "106510882521920559645",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/jai-493%40dogwood-vision-446617-m3.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

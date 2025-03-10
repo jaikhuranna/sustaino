@@ -11,6 +11,7 @@ import AVFoundation
 class HomeViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     
+    var gcsManager  = DataModel(bucketName: "sustaino", accessToken: "ya29.c.c0ASRK0Gbd5m9xOgFasUpdp8QVsNU8MCqIUouCvcoQqZcVbOqsRFDNq5NMsbIf8sXsK-3BSliqUECKJaGSendPyXtE8-lAABX964N0_kR9GZTq00XtJrSmxTnXjhOTuR8a4HXgHX2gbW1KJZ3JbfoQ5lO52L2Y7MMHxYP_OdH_GRwumHF1yDgQSL1GqhYH3L0HP7O2Zg3QykTxC36TPrxm5XWnncibAIZbjS5bIdAJfsIwCAejnkBlH-w2ztHAEa6TpZMraSdfEhB1GAqoJ7x7_fBwzeYIkNBR7KJQctk1_XzwZpSfgDpX-va5-Za-AYLeIRpC9pT-cKgoUhf4MJHhmj3EijaHRIckgihpFmw3Y2WB53A4UntXkj4gj70gzpOmO7p9-wE399KpfwM8iXuoowe77FBynkFq-joj2FnfuzxeB_j8t7-Y8a1J1xaSefZViX7W3Op45dXptdS5_OV1rldBuZR0sZStVFkRMmbiYsIcbMqJjVXnSmMJrsFZYucIr1mBRp3yx5BJp1d5_aOVaBWVajSF_4YobWv1g41RJ83Zc-bsqYs4JR85wUxOh_FvnyRmYMsfM6a2olUjpF6747Fqwkxv4w9_wnRhVQ5ijz9_3MgOIJx1lvc_JwmSc8bBkWZ51xbzXRbXhBvtmZu9OBrgmkzgppJo66njpt61pvO7JY_XtqwmQ74gWbnnMXtm2pkB2ccpJJr4xz-4jUdu3R2c1MrX_eeQQMF3V-I4hnkpyXauS4OJe-SzwrndlWM-tduYSIbm92IViaBu5b_zyYXlU52VfW1ZRrIl9SBWZgwlbjVwFkqItgf1g09ecm3frB5gMliWonMq8MWSzzXvhwxOp2eZin43QZ9VRXWYgghimzgQJXgk4Jwry9MWI0tZzFJiIpli74kV73zSBjhkoYJX7sjg-kZR5Uy1SVWlOn70MWY0beOQ-bQwhIZnr-kQfc0S5zQ4zI15d3wIkshuUY5Sai86emtva9eYtFSYnbOJ-FJ_zJB-Ugl")
     
     @IBOutlet var collectionView: UICollectionView!
     public static var capturedImage: UIImage?
@@ -25,6 +26,8 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        print(gcsManager)
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -153,26 +156,61 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
 
 extension HomeViewController: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        if let error = error {
-            print("Error capturing photo: \(error.localizedDescription)")
+        guard error == nil else {
+            print("Error capturing photo: \(error!.localizedDescription)")
             return
         }
         
         guard let imageData = photo.fileDataRepresentation(),
-              let image = UIImage(data: imageData) else {
-            print("Error: Could not convert photo to UIImage")
+              let capturedImage = UIImage(data: imageData) else {
+            print("Error converting photo data to image")
             return
         }
         
-        HomeViewController.capturedImage = image
+        // Store the captured image
+        HomeViewController.capturedImage = capturedImage
         
-        DataModel.lastScansImages.append(image)
+        // Add to the lastScansImages array
+        DataModel.lastScansImages.append(capturedImage)
         
+        // Refresh collection view
         DispatchQueue.main.async {
             self.collectionView.reloadData()
         }
         
-        print("Image captured and saved to capturedImage")
+        // Save image to temporary file and upload
+        saveAndUploadImage(image: capturedImage)
     }
     
+    private func saveAndUploadImage(image: UIImage) {
+        // Create a temporary file path
+        let tempDirectoryURL = FileManager.default.temporaryDirectory
+        let fileName = "captured_image_\(Date().timeIntervalSince1970).jpg"
+        let fileURL = tempDirectoryURL.appendingPathComponent(fileName)
+        
+        // Save image to the file
+        if let imageData = image.jpegData(compressionQuality: 0.8) {
+            do {
+                try imageData.write(to: fileURL)
+                
+                // Upload using the DataModel
+                gcsManager.uploadImage(filePath: fileURL.path) { success, url in
+                    if success, let imageURL = url {
+                        print("✅ Image uploaded successfully: \(imageURL)")
+                        
+                        DispatchQueue.main.async {
+                            // Show success alert or navigate to results screen
+                            let alert = UIAlertController(title: "Success", message: "Image uploaded successfully!", preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "OK", style: .default))
+                            self.present(alert, animated: true)
+                        }
+                    } else {
+                        print("❌ Failed to upload image")
+                    }
+                }
+            } catch {
+                print("Error saving image to temporary file: \(error.localizedDescription)")
+            }
+        }
+    }
 }

@@ -20,6 +20,6 @@ class ProductDetailsViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         ProductUIimageView.image = HomeViewController.capturedImage
         ProductDetailsViewController.productImage = ProductUIimageView.image
-        DataModel.lastScansImages.append(ProductDetailsViewController.productImage!);
+//        DataModel.lastScansImages.append(ProductDetailsViewController.productImage!);
     }
 }

@@ -1,22 +1,19 @@
-//
-//  DataModel.swift
-//  Sustano
-//
-//  Created by Jai Khurana on 10/03/25.
-//
-
 import Foundation
 import UIKit
 
 class DataModel {
-    static var lastScansImages: [UIImage] = []
-}
-
-
-struct GCSImageManager {
     let bucketName: String
     let accessToken: String
+    var uploadedImageURL: String?  // Stores the uploaded image URL
+    
+    static var lastScansImages: [UIImage] = []
 
+    
+    init(bucketName: String, accessToken: String) {
+        self.bucketName = bucketName
+        self.accessToken = accessToken
+    }
+    
     /// List all images in the bucket
     func listImages(completion: @escaping ([String]?) -> Void) {
         let url = URL(string: "https://storage.googleapis.com/storage/v1/b/\(bucketName)/o")!
@@ -44,7 +41,7 @@ struct GCSImageManager {
     }
 
     /// Upload an image to GCS
-    func uploadImage(filePath: String, completion: @escaping (Bool) -> Void) {
+    func uploadImage(filePath: String, completion: @escaping (Bool, String?) -> Void) {
         let fileName = (filePath as NSString).lastPathComponent
         let url = URL(string: "https://storage.googleapis.com/upload/storage/v1/b/\(bucketName)/o?uploadType=media&name=\(fileName)")!
         
@@ -58,33 +55,50 @@ struct GCSImageManager {
             request.httpBody = fileData
         } catch {
             print("Error reading file: \(error)")
-            completion(false)
+            completion(false, nil)
             return
         }
         
-        let task = URLSession.shared.dataTask(with: request) { data, _, error in
-            completion(error == nil)
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+            if let error = error {
+                print("Upload failed: \(error.localizedDescription)")
+                completion(false, nil)
+                return
+            }
+            
+            let imageURL = "https://storage.googleapis.com/\(self?.bucketName ?? "")/\(fileName)"
+            self?.uploadedImageURL = imageURL
+            completion(true, imageURL)
         }
         task.resume()
     }
-
-    /// Get the public URL of an image
-    func getImageURL(imageName: String) -> String {
-        return "https://storage.googleapis.com/\(bucketName)/\(imageName)"
-    }
-
-    /// Delete an image from GCS
-    func deleteImage(imageName: String, completion: @escaping (Bool) -> Void) {
-        let url = URL(string: "https://storage.googleapis.com/storage/v1/b/\(bucketName)/o/\(imageName)")!
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request) { _, response, error in
-            let success = (response as? HTTPURLResponse)?.statusCode == 204
-            completion(success && error == nil)
+    
+    /// Handle button tap to upload image
+    func checkButtonTapped(filePath: String, completion: @escaping (String?) -> Void) {
+        uploadImage(filePath: filePath) { [weak self] success, url in
+            DispatchQueue.main.async {
+                if success, let url = url {
+                    print("✅ Upload successful: \(url)")
+                    self?.uploadedImageURL = url
+                    self?.showConfirmation()
+                    completion(url)
+                    
+                    
+                } else {
+                    print("❌ Upload failed")
+                    completion(nil)
+                }
+            }
         }
-        task.resume()
+    }
+    
+    /// Show confirmation alert
+    private func showConfirmation() {
+        let alert = UIAlertController(title: "Success", message: "Image uploaded successfully!", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+            rootVC.present(alert, animated: true, completion: nil)
+        }
     }
 }
