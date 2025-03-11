@@ -2,9 +2,10 @@ import UIKit
 import FirebaseStorage
 import AVFoundation
 
-class HomeViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class HomeViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, AVCapturePhotoCaptureDelegate {
     
     var dataModel = DataModel()
+    let storage = Storage.storage()
     
     @IBOutlet var collectionView: UICollectionView!
     public static var capturedImage: UIImage?
@@ -14,7 +15,6 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     private var photoOutput: AVCapturePhotoOutput!
     
     @IBOutlet var viewportView: UIView!
-    
     @IBOutlet var checkButton: UIButton!
     
     override func viewDidLoad() {
@@ -30,38 +30,23 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         viewportView.layer.cornerRadius = 12
     }
     
-    private func checkCameraPermissions() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            captureSession.startRunning()
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                if granted {
-                    DispatchQueue.main.async {
-                        self.captureSession.startRunning()
-                    }
-                } else {
-                    print("Camera permission denied")
-                }
-            }
-        case .denied, .restricted:
-            print("Camera permission denied")
-        @unknown default:
-            print("Unknown camera permission state")
+    func generateLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { (sectionIndex, environment) -> NSCollectionLayoutSection? in
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(151))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 10
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 10, trailing: 10)
+            return section
         }
-    }
-    
-    @IBAction func checkButtonTapped(_ sender: Any) {
-        let photoSettings = AVCapturePhotoSettings()
-        photoSettings.flashMode = .auto
-        photoSettings.isHighResolutionPhotoEnabled = false
-        
-        photoOutput.capturePhoto(with: photoSettings, delegate: self)
+        return layout
     }
     
     private func setupCameraSession() {
         captureSession = AVCaptureSession()
-        captureSession.sessionPreset = .medium
+        captureSession.sessionPreset = .photo
         
         guard let backCamera = AVCaptureDevice.default(for: .video) else {
             print("Error: Unable to access back camera")
@@ -92,9 +77,31 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             viewportView.layer.addSublayer(previewLayer)
             viewportView.clipsToBounds = true
             
+            captureSession.startRunning()
         } catch {
             print("Error setting up camera input: \(error.localizedDescription)")
             return
+        }
+    }
+    
+    private func checkCameraPermissions() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            captureSession.startRunning()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                if granted {
+                    DispatchQueue.main.async {
+                        self.captureSession.startRunning()
+                    }
+                } else {
+                    print("Camera permission denied")
+                }
+            }
+        case .denied, .restricted:
+            print("Camera permission denied")
+        @unknown default:
+            print("Unknown camera permission state")
         }
     }
     
@@ -112,67 +119,105 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         return cell
     }
     
-    func generateLayout() -> UICollectionViewLayout {
-        let layout = UICollectionViewCompositionalLayout { (sectionIndex, environment) -> NSCollectionLayoutSection? in
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(151))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
-            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
-            let section = NSCollectionLayoutSection(group: group)
-            section.interGroupSpacing = 10
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 10, trailing: 10)
-            return section
-        }
-        return layout
+    @IBAction func checkButtonTapped(_ sender: Any) {
+        let loadingAlert = UIAlertController(title: "Loading", message: "Please wait...", preferredStyle: .alert)
+        present(loadingAlert, animated: true)
+        
+        let photoSettings = AVCapturePhotoSettings()
+        photoSettings.isHighResolutionPhotoEnabled = false
+        photoSettings.flashMode = .auto
+        
+        photoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
-    private func saveAndUploadImage(image: UIImage) {
-        let tempDirectoryURL = FileManager.default.temporaryDirectory
-        let fileName = "captured_image_\(Date().timeIntervalSince1970).jpg"
-        let fileURL = tempDirectoryURL.appendingPathComponent(fileName)
-        
-        if let imageData = image.jpegData(compressionQuality: 0.8) {
-            do {
-                try imageData.write(to: fileURL)
-                dataModel.uploadImage(filePath: fileURL.path) { success, url in
-                    DispatchQueue.main.async {
-                        if success, let imageURL = url {
-                            print("✅ Image uploaded successfully: \(imageURL)")
-                            let alert = UIAlertController(title: "Success", message: "Image uploaded successfully!", preferredStyle: .alert)
-                            alert.addAction(UIAlertAction(title: "OK", style: .default))
-                            self.present(alert, animated: true)
-                        } else {
-                            print("❌ Failed to upload image")
-                        }
-                    }
-                }
-            } catch {
-                print("Error saving image to temporary file: \(error.localizedDescription)")
-            }
-        }
-    }
-}
-
-extension HomeViewController: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        guard error == nil else {
-            print("Error capturing photo: \(error!.localizedDescription)")
-            return
-        }
-        
+        // Get image data
         guard let imageData = photo.fileDataRepresentation(),
-              let capturedImage = UIImage(data: imageData) else {
-            print("Error converting photo data to image")
+              let image = UIImage(data: imageData) else {
+            self.dismiss(animated: true)
             return
         }
         
-        HomeViewController.capturedImage = capturedImage
-        DataModel.lastScansImages.append(capturedImage)
+        // Store captured image
+        HomeViewController.capturedImage = image
         
+        // Add to recent scans
+        DataModel.lastScansImages.insert(image, at: 0)
+        if DataModel.lastScansImages.count > 10 {
+            DataModel.lastScansImages.removeLast()
+        }
+        
+        // Update UI
         DispatchQueue.main.async {
             self.collectionView.reloadData()
         }
         
-        saveAndUploadImage(image: capturedImage)
+        // Upload to Firebase and continue with API call
+        self.uploadImageToFirebase(imageData: imageData) { imageURL in
+            if let url = imageURL {
+                self.fetchAPIData(imageURL: url) {
+                    // Completion handler after API call
+                }
+            }
+            DispatchQueue.main.async {
+                self.dismiss(animated: true)
+            }
+        }
+    }
+    
+    func uploadImageToFirebase(imageData: Data, completion: @escaping (String?) -> Void) {
+        let fileName = "sustain/\(UUID().uuidString).jpg"
+        let storageRef = storage.reference().child(fileName)
+        
+        storageRef.putData(imageData, metadata: nil) { _, error in
+            if let error = error {
+                print("Failed to upload image: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    print("Failed to get download URL: \(error.localizedDescription)")
+                    completion(nil)
+                } else {
+                    completion(url?.absoluteString)
+                }
+            }
+        }
+    }
+    
+    private func fetchAPIData(imageURL: String, completion: @escaping () -> Void) {
+        guard let url = URL(string: "http://10.9.137.188:8000/analyze-product/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = ["image_url": imageURL]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.dismiss(animated: true, completion: nil) // Dismiss loading alert
+            }
+            
+            guard let data = data, error == nil else {
+                DispatchQueue.main.async {
+                    let errorAlert = UIAlertController(title: "Error", message: "Failed to fetch data: \(error?.localizedDescription ?? "Unknown error")", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(errorAlert, animated: true)
+                }
+                return
+            }
+            
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                print("API Response: \(jsonResponse)")
+            } catch {
+                print("Failed to parse API response")
+            }
+            
+            completion()
+        }.resume()
     }
 }
