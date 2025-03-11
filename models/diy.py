@@ -1,9 +1,16 @@
 import os
-import json
+import re
 from dotenv import load_dotenv
-from .multimodal import classify_product_category, generate_product_analysis, extract_json_from_markdown
+from huggingface_hub import InferenceClient
+import multimodal
 
 load_dotenv()
+
+hf_api_key = os.getenv('HUGGINGFACE_API_KEY')
+if not hf_api_key:
+    raise ValueError("Hugging Face API Key not set in environment variable")
+
+text_generation_client = InferenceClient(token=hf_api_key, model="mistralai/Mistral-Nemo-Instruct-2407")
 
 DIY_CATEGORIES = {
     "plastic_bottle": [
@@ -54,44 +61,42 @@ DIY_CATEGORIES = {
     "foam_container": [
         {"name": "Pin Cushion", "youtube_link": "https://www.youtube.com/watch?v=opq90", "thumbnail": "https://img.youtube.com/vi/opq90/0.jpg"},
         {"name": "Stamp Block", "youtube_link": "https://www.youtube.com/watch?v=rst12", "thumbnail": "https://img.youtube.com/vi/rst12/0.jpg"},
-        {"name": "Kids' Puzzle", "youtube_link": "https://www.youtube.com/watch?v=uvw34", "thumbnail": "https://img.youtube.com/vi/uvw34/0.jpg"}
+        {"name": "Kids’ Puzzle", "youtube_link": "https://www.youtube.com/watch?v=uvw34", "thumbnail": "https://img.youtube.com/vi/uvw34/0.jpg"}
     ]
 }
 
-def generate_diy_suggestions(product_analysis_output):
-    """
-    Generate DIY suggestions based on product analysis
-    
-    Args:
-        product_analysis_output (str): The raw product analysis text
-        
-    Returns:
-        str: JSON string containing DIY suggestions
-    """
-    # Extract clean JSON
-    product_json = extract_json_from_markdown(product_analysis_output)
-    
+def extract_sustainability_score(analysis_text):
+    import re
+    match = re.search(r"Sustainability Score:\s*(\d+)", analysis_text)
+    if match:
+        try:
+            return int(match.group(1))
+        except:
+            return 0
+    return 0
+
+def generate_diy_suggestions(image_path):
+    # Obtain the plain text analysis from the image.
+    analysis_text = multimodal.generate_product_analysis(image_path)
+    score = extract_sustainability_score(analysis_text)
+    if score >= 70:
+        return "Sustainability Score is high (>=70), no DIY suggestions provided."
     try:
-        product_data = json.loads(product_json)
-        sustainability_score = product_data.get('sustainability_score', 0)
-        
-        if sustainability_score >= 70:
-            return json.dumps({
-                "diy_ideas": [],
-                "message": "Sustainability score >= 70, no DIY suggestions provided."
-            })
-    except json.JSONDecodeError as e:
-        return json.dumps({
-            "diy_ideas": [],
-            "message": f"Error parsing product data: {str(e)}"
-        })
+        category = multimodal.classify_product_category(analysis_text).lower().strip()
+    except Exception:
+        category = "plastic_bottle"
     
-    # Classify the category
-    category = classify_product_category(product_json).lower().strip().replace("</s>", "")
-    
-    print("Classified category:", category)  # for debugging
-    
-    # Return DIY ideas directly from hardcoded categories
     diy_ideas = DIY_CATEGORIES.get(category, [])
+    if not diy_ideas:
+        return "No DIY suggestions available for this category."
     
-    return json.dumps({"diy_ideas": diy_ideas})
+    result = "DIY Suggestions:\n"
+    for idea in diy_ideas:
+        result += f"- {idea['name']}: Watch video here {idea['youtube_link']}\n"
+    return result
+
+if __name__ == "__main__":
+    sample_image_path = "coke.jpg"
+    suggestions = generate_diy_suggestions(sample_image_path)
+    print("DIY Suggestions:")
+    print(suggestions)
