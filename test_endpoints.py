@@ -50,9 +50,6 @@ def test_analyze_with_alternatives(analysis_json):
 
 
 def test_diy_suggestions(analysis_json):
-    """
-    Test the diy-suggestions endpoint using an existing analysis
-    """
     print("\n--- Testing DIY Suggestions Endpoint ---")
 
     response = requests.post(
@@ -93,22 +90,16 @@ def test_diy_suggestions(analysis_json):
 
 
 def run_all_tests(image_path):
-    """
-    Run all tests in sequence
-    """
+
     print("\n=== RUNNING ALL ENDPOINT TESTS ===")
     
-    # Test 1: Basic product analysis
     analysis_result = test_analyze_product(image_path)
     
     if analysis_result:
-        # Test 2: Get alternative product suggestions
         test_analyze_with_alternatives(analysis_result)
         
-        # Test 3: Get DIY suggestions from existing analysis
         test_diy_suggestions(analysis_result)
     
-    # Test 4: One-step combined analysis and DIY suggestions
     # test_analyze_image_with_diy(image_path)
 
 
@@ -121,7 +112,6 @@ if __name__ == "__main__":
 
     run_all_tests(test_image_path)
     
-    # Alternatively, you can run individual tests:
     # analysis_result = test_analyze_product(test_image_path)
     # if analysis_result:
     #     test_analyze_with_alternatives(analysis_result)
