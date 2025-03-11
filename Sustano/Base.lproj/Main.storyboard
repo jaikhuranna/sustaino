@@ -95,7 +95,6 @@
                                 </buttonConfiguration>
                                 <connections>
                                     <action selector="checkButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="AMx-PE-ufJ"/>
-                                    <segue destination="otB-8P-Tw6" kind="show" id="nnm-0S-Oc4"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Last scans" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ZZ-Xu-V8N">
@@ -240,6 +239,7 @@
                         <outlet property="checkButton" destination="NZy-oQ-eP2" id="lwp-Q2-WKJ"/>
                         <outlet property="collectionView" destination="bTp-w0-Lko" id="roh-K3-BST"/>
                         <outlet property="viewportView" destination="hTD-am-8qb" id="fGJ-13-0uX"/>
+                        <segue destination="otB-8P-Tw6" kind="show" identifier="showDetails" id="dwi-Vh-gZv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

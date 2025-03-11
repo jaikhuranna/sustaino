@@ -152,15 +152,15 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             self.collectionView.reloadData()
         }
         
-        // Upload to Firebase and continue with API call
-        self.uploadImageToFirebase(imageData: imageData) { imageURL in
-            if let url = imageURL {
-                self.fetchAPIData(imageURL: url) {
-                    // Completion handler after API call
-                }
-            }
+        // Send directly to API instead of uploading to Firebase first
+        self.sendImageToAPI(imageData: imageData) { success in
             DispatchQueue.main.async {
-                self.dismiss(animated: true)
+                self.dismiss(animated: true) {
+                    // Perform segue after API call and dismissing alert
+                    if success {
+                        self.performSegue(withIdentifier: "showDetails", sender: self)
+                    }
+                }
             }
         }
     }
@@ -187,37 +187,60 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
     }
     
-    private func fetchAPIData(imageURL: String, completion: @escaping () -> Void) {
-        guard let url = URL(string: "http://10.9.137.188:8000/analyze-product/") else { return }
+    private func sendImageToAPI(imageData: Data, completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "http://10.9.137.188:8000/analyze-product/") else {
+            completion(false)
+            return
+        }
+        
+        // Create multipart request
+        let boundary = UUID().uuidString
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        let body: [String: Any] = ["image_url": imageURL]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        // Prepare request body
+        var body = Data()
+        
+        // Add the image file data
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        // Close the boundary
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        // Set the request body
+        request.httpBody = body
         
         URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                self.dismiss(animated: true, completion: nil) // Dismiss loading alert
-            }
-            
             guard let data = data, error == nil else {
-                DispatchQueue.main.async {
-                    let errorAlert = UIAlertController(title: "Error", message: "Failed to fetch data: \(error?.localizedDescription ?? "Unknown error")", preferredStyle: .alert)
-                    errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
-                    self.present(errorAlert, animated: true)
-                }
+                print("API Error: \(error?.localizedDescription ?? "Unknown error")")
+                completion(false)
                 return
             }
             
             do {
                 let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
                 print("API Response: \(jsonResponse)")
+                completion(true)
             } catch {
-                print("Failed to parse API response")
+                print("Failed to parse API response: \(error)")
+                completion(false)
             }
-            
-            completion()
         }.resume()
+    }
+    
+    // Prepare for segue
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDetails" {
+            // Pass any data to the destination controller here if needed
+            // For example:
+            // if let destinationVC = segue.destination as? DetailsViewController {
+            //     destinationVC.image = HomeViewController.capturedImage
+            // }
+        }
     }
 }
