@@ -58,6 +58,7 @@ def format_prompt_for_model(user_prompt, product_info=None):
         "'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
         "In the description, include brief reasoning for the scores based on evidence from the text and data. "
         "If data is insufficient, note it in the description and provide conservative score estimates."
+        "if you do not recognise any product in the image then return saying that no product foun in the image"
     )
     
     complete_prompt = user_prompt
