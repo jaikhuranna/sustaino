@@ -20,6 +20,8 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        performSegue(withIdentifier: "onboarding", sender: self)
+        
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.collectionViewLayout = generateLayout()
@@ -105,6 +107,11 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
     }
     
+    // MARK: - Collection View Methods
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "showDetails", sender: self)
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return DataModel.lastScansImages.count
     }
@@ -131,57 +138,28 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        // Get image data
         guard let imageData = photo.fileDataRepresentation(),
               let image = UIImage(data: imageData) else {
             self.dismiss(animated: true)
             return
         }
         
-        // Store captured image
         HomeViewController.capturedImage = image
-        
-        // Add to recent scans
         DataModel.lastScansImages.insert(image, at: 0)
         if DataModel.lastScansImages.count > 10 {
             DataModel.lastScansImages.removeLast()
         }
         
-        // Update UI
         DispatchQueue.main.async {
             self.collectionView.reloadData()
         }
         
-        // Send directly to API instead of uploading to Firebase first
         self.sendImageToAPI(imageData: imageData) { success in
             DispatchQueue.main.async {
                 self.dismiss(animated: true) {
-                    // Perform segue after API call and dismissing alert
                     if success {
                         self.performSegue(withIdentifier: "showDetails", sender: self)
                     }
-                }
-            }
-        }
-    }
-    
-    func uploadImageToFirebase(imageData: Data, completion: @escaping (String?) -> Void) {
-        let fileName = "sustain/\(UUID().uuidString).jpg"
-        let storageRef = storage.reference().child(fileName)
-        
-        storageRef.putData(imageData, metadata: nil) { _, error in
-            if let error = error {
-                print("Failed to upload image: \(error.localizedDescription)")
-                completion(nil)
-                return
-            }
-            
-            storageRef.downloadURL { url, error in
-                if let error = error {
-                    print("Failed to get download URL: \(error.localizedDescription)")
-                    completion(nil)
-                } else {
-                    completion(url?.absoluteString)
                 }
             }
         }
@@ -192,60 +170,65 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             completion(false)
             return
         }
-        
-        // Create multipart request
+
         let boundary = UUID().uuidString
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
-        // Prepare request body
+
         var body = Data()
-        
-        // Add the image file data
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
         body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
-        
-        // Close the boundary
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
-        // Set the request body
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
         request.httpBody = body
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
-                print("API Error: \(error?.localizedDescription ?? "Unknown error")")
+                print("❌ API Error: \(error?.localizedDescription ?? "Unknown error")")
                 completion(false)
                 return
             }
-            
+
+            // 🚀 Print raw response
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("🚀 Raw API Response: \n\(responseString)")
+            }
+
             do {
-                if let responseString = String(data: data, encoding: .utf8) {
-                    ProductDetailsViewController.jason = responseString
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+                print("✅ Parsed JSON: \(jsonResponse)")
+
+                if let jsonDict = jsonResponse as? [String: Any] {
+                    DataModel.productDetails = DataModel().processJSONResponse(data)
+                    DataModel.alternativeProduct = DataModel().processAlternativesJSON(data)
+                    DataModel.diyIdeas = DataModel().processDIYIdeasJSON(data)
                 }
-                    
-                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
-                print("API Response: \(jsonResponse)")
-//                ProductDetailsViewController.jason = jsonResponse as? String
+
                 completion(true)
             } catch {
-                print("Failed to parse API response: \(error)")
+                print("❌ Failed to parse API response: \(error.localizedDescription)")
                 completion(false)
             }
         }.resume()
     }
     
-    // Prepare for segue
+
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showDetails" {
-            // Pass any data to the destination controller here if needed
-            // For example:
-            // if let destinationVC = segue.destination as? DetailsViewController {
-            //     destinationVC.image = HomeViewController.capturedImage
-            // }
+        if segue.identifier == "showDetails",
+           let destinationVC = segue.destination as? ProductDetailsViewController {
+            
+            // Send both raw JSON and structured API data
+            destinationVC.productDetails = DataModel.productDetails
+            destinationVC.alternativeProduct = DataModel.alternativeProduct
+            destinationVC.diyIdeas = DataModel.diyIdeas
+
+            // Store raw API response as fallback
+            ProductDetailsViewController.jason = DataModel.lastScansTexts.last
         }
     }
+
 }

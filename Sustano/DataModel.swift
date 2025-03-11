@@ -2,10 +2,117 @@ import Foundation
 import FirebaseStorage
 import UIKit
 
+// MARK: - Data Model
 class DataModel {
+    
+    // Stores last scanned images for history
     static var lastScansImages: [UIImage] = []
+    
+    // Stores last scanned texts for history
+    static var lastScansTexts: [String] = []
+    
+    // Parsed API Data
+    static var productDetails: ProductDetails?
+    static var alternativeProduct: AlternativeProduct?
+    static var diyIdeas: [DIYIdea] = []
+    
+    // Uploaded Image URL (for Firebase)
     var uploadedImageURL: String?
     
+    // MARK: - Product Details Model
+    struct ProductDetails {
+        let name: String
+        let description: String
+        let healthScore: Int
+        let sustainabilityScore: Int
+    }
+    
+    func processJSONResponse(_ jsonData: Data) -> ProductDetails? {
+        do {
+            if let outerJSON = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+               let resultString = outerJSON["result"] as? String {
+                
+                if let innerData = resultString.data(using: .utf8),
+                   let innerJSON = try JSONSerialization.jsonObject(with: innerData, options: []) as? [String: Any] {
+                    
+                    if let productInfo = innerJSON["product_info"] as? [String: Any],
+                       let name = productInfo["name"] as? String,
+                       let description = productInfo["description"] as? String,
+                       let healthScore = innerJSON["health_score"] as? Int,
+                       let sustainabilityScore = innerJSON["sustainability_score"] as? Int {
+                        
+                        return ProductDetails(
+                            name: name,
+                            description: description,
+                            healthScore: healthScore,
+                            sustainabilityScore: sustainabilityScore
+                        )
+                    }
+                }
+            }
+        } catch {
+            print("❌ Error processing JSON: \(error.localizedDescription)")
+        }
+        return nil
+    }
+    
+    // MARK: - Alternative Product Model
+    struct AlternativeProduct {
+        let productName: String
+        let reason: String
+    }
+    
+    func processAlternativesJSON(_ jsonData: Data) -> AlternativeProduct? {
+        do {
+            if let outerJSON = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+               let alternativesString = outerJSON["alternatives"] as? String {
+                
+                if let innerData = alternativesString.data(using: .utf8),
+                   let innerJSON = try JSONSerialization.jsonObject(with: innerData, options: []) as? [String: Any] {
+                    
+                    if let productName = innerJSON["alternative_product"] as? String,
+                       let reason = innerJSON["reason"] as? String {
+                        
+                        return AlternativeProduct(productName: productName, reason: reason)
+                    }
+                }
+            }
+        } catch {
+            print("❌ Error processing Alternatives JSON: \(error.localizedDescription)")
+        }
+        return nil
+    }
+    
+    // MARK: - DIY Idea Model
+    struct DIYIdea {
+        let name: String
+        let youtubeLink: String
+        let thumbnail: String
+    }
+    
+    func processDIYIdeasJSON(_ jsonData: Data) -> [DIYIdea] {
+        var diyIdeas: [DIYIdea] = []
+        
+        do {
+            if let outerJSON = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+               let diyArray = outerJSON["diy_ideas"] as? [[String: Any]] {
+                
+                for idea in diyArray {
+                    if let name = idea["name"] as? String,
+                       let youtubeLink = idea["youtube_link"] as? String,
+                       let thumbnail = idea["thumbnail"] as? String {
+                        
+                        diyIdeas.append(DIYIdea(name: name, youtubeLink: youtubeLink, thumbnail: thumbnail))
+                    }
+                }
+            }
+        } catch {
+            print("❌ Error processing DIY Ideas JSON: \(error.localizedDescription)")
+        }
+        return diyIdeas
+    }
+    
+    // MARK: - Firebase Storage Handling
     /// Upload an image to Firebase Storage
     func uploadImage(filePath: String, completion: @escaping (Bool, String?) -> Void) {
         let storage = Storage.storage()

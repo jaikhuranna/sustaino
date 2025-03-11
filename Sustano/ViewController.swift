@@ -28,6 +28,6 @@ class ViewController: UIViewController {
             print("Supported Max Photo Dimension: \(dimension.width) x \(dimension.height)")
         }
     }
-
+    
 
 }

@@ -14,12 +14,18 @@
 		3DAF8F862D7F701400AE91C8 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3DAF8F852D7F701400AE91C8 /* FirebaseDatabase */; };
 		3DAF8F882D7F701400AE91C8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 3DAF8F872D7F701400AE91C8 /* FirebaseFirestore */; };
 		3DAF8F8A2D7F701400AE91C8 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 3DAF8F892D7F701400AE91C8 /* FirebaseStorage */; };
+		3DAF8FD22D8036DD00AE91C8 /* GetStartedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAF8FD12D8036DD00AE91C8 /* GetStartedViewController.swift */; };
+		3DAF8FD62D804B5E00AE91C8 /* AltViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAF8FD52D804B5E00AE91C8 /* AltViewController.swift */; };
+		3DAF8FDA2D804B7500AE91C8 /* RecycleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAF8FD92D804B7500AE91C8 /* RecycleViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D23E0E02D7E96D80042C42C /* Sustano.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sustano.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DAF8E9E2D7F2E8B00AE91C8 /* LastScanCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LastScanCollectionViewCell.swift; path = Sustano/Home/LastScanCollectionViewCell.swift; sourceTree = "<group>"; };
 		3DAF8EA22D7F2F4000AE91C8 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DataModel.swift; path = Sustano/DataModel.swift; sourceTree = "<group>"; };
+		3DAF8FD12D8036DD00AE91C8 /* GetStartedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GetStartedViewController.swift; path = Sustano/GetStartedViewController.swift; sourceTree = "<group>"; };
+		3DAF8FD52D804B5E00AE91C8 /* AltViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AltViewController.swift; path = Sustano/AltViewController.swift; sourceTree = "<group>"; };
+		3DAF8FD92D804B7500AE91C8 /* RecycleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecycleViewController.swift; path = Sustano/RecycleViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -62,6 +68,9 @@
 		3D23E0D72D7E96D80042C42C = {
 			isa = PBXGroup;
 			children = (
+				3DAF8FD92D804B7500AE91C8 /* RecycleViewController.swift */,
+				3DAF8FD52D804B5E00AE91C8 /* AltViewController.swift */,
+				3DAF8FD12D8036DD00AE91C8 /* GetStartedViewController.swift */,
 				3DAF8E9E2D7F2E8B00AE91C8 /* LastScanCollectionViewCell.swift */,
 				3DAF8EA22D7F2F4000AE91C8 /* DataModel.swift */,
 				3D23E0E22D7E96D80042C42C /* Sustano */,
@@ -160,7 +169,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DAF8E9F2D7F2E8B00AE91C8 /* LastScanCollectionViewCell.swift in Sources */,
+				3DAF8FDA2D804B7500AE91C8 /* RecycleViewController.swift in Sources */,
 				3DAF8EA32D7F2F4000AE91C8 /* DataModel.swift in Sources */,
+				3DAF8FD62D804B5E00AE91C8 /* AltViewController.swift in Sources */,
+				3DAF8FD22D8036DD00AE91C8 /* GetStartedViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
