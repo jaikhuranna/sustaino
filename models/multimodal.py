@@ -99,8 +99,16 @@ def generate_product_analysis(image_path):
         final_output_text = ""
         for text_segment in generated_text_stream:
             final_output_text += text_segment.token.text
-
-        return final_output_text
+        json_string = extract_json_from_markdown(final_output_text)        
+        try:
+            parsed_json = json.loads(json_string)
+            return json.dumps(parsed_json, indent=2)
+        except json.JSONDecodeError:
+            return json.dumps({
+                "error": "Failed to parse JSON from model response",
+                "raw_response": final_output_text[:500] + "..." if len(final_output_text) > 500 else final_output_text
+            }, indent=None)
+            
     except Exception as e:
         error_json = json.dumps({
             "error": str(e),
@@ -110,16 +118,18 @@ def generate_product_analysis(image_path):
             },
             "health_score": 0,
             "sustainability_score": 0
-        })
+        }, indent=2)
         return error_json
 
 def extract_json_from_markdown(text):
-    """
-    Extracts the JSON block from a markdown-formatted string.
-    """
     json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
+
+    json_match = re.search(r"(\{.*\})", text, re.DOTALL)
+    if json_match:
+        return json_match.group(1)
+
     return text
 
 def classify_product_category(raw_product_analysis):
@@ -127,7 +137,6 @@ def classify_product_category(raw_product_analysis):
     Classify the product into a material category.
     This function extracts the JSON portion from the analysis and uses an LLM to determine the category.
     """
-    # Extract JSON block from the analysis output
     json_text = extract_json_from_markdown(raw_product_analysis)
     
     system_context_prompt = (
