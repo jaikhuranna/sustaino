@@ -8,7 +8,9 @@
 import UIKit
 
 class LastScanCollectionViewCell: UICollectionViewCell {
+    @IBOutlet var backroundView: UIView!
     @IBOutlet var lastScanImageView: UIImageView!
     
+    @IBOutlet var contentVieww: UIView!
     @IBOutlet var ProductName: UILabel!
 }

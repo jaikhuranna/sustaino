@@ -127,7 +127,7 @@
                                                         <stackView opaque="NO" contentMode="scaleAspectFill" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="krv-DT-KxO">
                                                             <rect key="frame" x="10" y="10" width="368" height="131"/>
                                                             <subviews>
-                                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Rcc-oJ-oEF">
+                                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Rcc-oJ-oEF">
                                                                     <rect key="frame" x="0.0" y="0.0" width="131" height="131"/>
                                                                     <constraints>
                                                                         <constraint firstAttribute="width" constant="131" id="AOJ-jQ-DzY"/>
@@ -147,13 +147,13 @@
                                                                             <rect key="frame" x="0.0" y="45.333333333333329" width="225" height="40.333333333333329"/>
                                                                             <subviews>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="🌏" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9xN-5w-jBW">
-                                                                                    <rect key="frame" x="0.0" y="0.0" width="7" height="40.333333333333336"/>
+                                                                                    <rect key="frame" x="0.0" y="0.0" width="0.0" height="40.333333333333336"/>
                                                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                                     <nil key="textColor"/>
                                                                                     <nil key="highlightedColor"/>
                                                                                 </label>
-                                                                                <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.59999999999999998" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="6Z9-30-cnW">
-                                                                                    <rect key="frame" x="16" y="0.0" width="177" height="41.333333333333336"/>
+                                                                                <slider opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.59999999999999998" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="6Z9-30-cnW">
+                                                                                    <rect key="frame" x="9" y="0.0" width="184" height="41.333333333333336"/>
                                                                                     <color key="thumbTintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                                 </slider>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="👍" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9FS-h1-kDe">
@@ -168,13 +168,13 @@
                                                                             <rect key="frame" x="0.0" y="90.666666666666671" width="225" height="40.333333333333329"/>
                                                                             <subviews>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="🏥" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ip8-be-oCr">
-                                                                                    <rect key="frame" x="0.0" y="0.0" width="9" height="40.333333333333336"/>
+                                                                                    <rect key="frame" x="0.0" y="0.0" width="0.0" height="40.333333333333336"/>
                                                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                                     <nil key="textColor"/>
                                                                                     <nil key="highlightedColor"/>
                                                                                 </label>
-                                                                                <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.29999999999999999" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="nBN-Fg-vwQ">
-                                                                                    <rect key="frame" x="18" y="0.0" width="175" height="41.333333333333336"/>
+                                                                                <slider opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.29999999999999999" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="nBN-Fg-vwQ">
+                                                                                    <rect key="frame" x="9" y="0.0" width="184" height="41.333333333333336"/>
                                                                                     <color key="thumbTintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                                 </slider>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="🤷‍♂️" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q0X-dZ-anE">
@@ -210,6 +210,7 @@
                                         <size key="customSize" width="388" height="151"/>
                                         <connections>
                                             <outlet property="ProductName" destination="zYG-ai-ixJ" id="LXE-Dk-QwQ"/>
+                                            <outlet property="backroundView" destination="sn1-wa-EU8" id="ZG9-2e-0ez"/>
                                             <outlet property="lastScanImageView" destination="Rcc-oJ-oEF" id="EsF-Af-kZi"/>
                                         </connections>
                                     </collectionViewCell>

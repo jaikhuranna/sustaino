@@ -113,7 +113,7 @@ def run_all_tests(image_path):
 
 
 if __name__ == "__main__":
-    test_image_path = "models/coke.jpg"
+    test_image_path = "models/can.jpg"
 
     if not os.path.exists(test_image_path):
         print(f"Error: File not found at {test_image_path}")
