@@ -40,12 +40,24 @@ def analyze_image(image_path):
 
 def format_prompt_for_model(user_prompt, product_info=None):
     system_context_prompt = (
-        "You are a Sustaino health and sustainability analyst. Analyze the image description or text using ONLY Tavily web data, and RETURN EXACTLY a JSON with: "
-        "'product_info' ('name' as product or 'Unknown', 'description' listing ONLY health complications from EXTRACTED sugar, caffeine, mineral deficiencies, "
-        "and sustainability issues like recyclability, carbon footprint, or 'No product found in the image'), 'health_score' (0-100, penalize high sugar [>20g=-30], "
-        "caffeine [>100mg=-20], additives [-10], bonus for minerals [+5]), 'sustainability_score' (0-100, bonus for recyclability [+30], low carbon [<1kg=+20], "
-        "penalize non-recyclable [-20]). EXTRACT DYNAMIC VALUES (e.g., sugar, caffeine, CO2) from web data or infer conservatively, justifying scores in 'description' "
-        "(e.g., 'sugar: [value]g, diabetes risk, -30'). BAN generic summaries (e.g., 'carbonated drink')."
+        "You are an expert sustainability and health analyst specializing in evaluating consumer products. "
+        "Your role is to critically analyze extracted text from product descriptions, labels, or related documents, "
+        "and combine it with web-sourced data to provide an evidence-based assessment. "
+        "Follow these steps:\n"
+        "1. Analyze the provided extracted text to identify the product and its characteristics.\n"
+        "2. Determine the product name from the text; if unclear, infer it logically from context.\n"
+        "3. Provide a short description (1-2 sentences) summarizing the product based on available data.\n"
+        "4. Calculate a health score (0-100) based on ingredients and nutritional content:\n"
+        "   - Assign lower scores to products high in sugar, caffeine, saturated fats, or artificial additives.\n"
+        "   - Assign higher scores to products with natural ingredients, low sugar/fat, or proven health benefits.\n"
+        "5. Calculate a sustainability score (0-100) based on environmental impact:\n"
+        "   - Evaluate packaging material (e.g., plastic vs. recyclable materials), recyclability, and carbon footprint.\n"
+        "   - Assign higher scores to eco-friendly materials, renewable sourcing, and low environmental impact.\n"
+        "6. Use the extracted text and web-sourced data for evidence-based analysis.\n"
+        "Return your response strictly as a JSON object with these keys: "
+        "'product_info' (containing 'name' and 'description'), 'health_score', and 'sustainability_score'. "
+        "In the description, include brief reasoning for the scores based on evidence from the text and data. "
+        "If data is insufficient, note it in the description and provide conservative score estimates."
     )
     
     complete_prompt = user_prompt
@@ -104,16 +116,8 @@ def generate_product_analysis(image_path):
         final_output_text = ""
         for text_segment in generated_text_stream:
             final_output_text += text_segment.token.text
-        json_string = extract_json_from_markdown(final_output_text)        
-        try:
-            parsed_json = json.loads(json_string)
-            return json.dumps(parsed_json, indent=2)
-        except json.JSONDecodeError:
-            return json.dumps({
-                "error": "Failed to parse JSON from model response",
-                "raw_response": final_output_text[:500] + "..." if len(final_output_text) > 500 else final_output_text
-            }, indent=None)
-            
+
+        return final_output_text
     except Exception as e:
         error_json = json.dumps({
             "error": str(e),
@@ -123,18 +127,16 @@ def generate_product_analysis(image_path):
             },
             "health_score": 0,
             "sustainability_score": 0
-        }, indent=2)
+        })
         return error_json
 
 def extract_json_from_markdown(text):
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    """
+    Extracts the JSON block from a markdown-formatted string.
+    """
+    json_match = re.search(r"(?:json)?\s*(\{.*?\})\s*", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
-
-    json_match = re.search(r"(\{.*\})", text, re.DOTALL)
-    if json_match:
-        return json_match.group(1)
-
     return text
 
 def classify_product_category(raw_product_analysis):
@@ -142,6 +144,7 @@ def classify_product_category(raw_product_analysis):
     Classify the product into a material category.
     This function extracts the JSON portion from the analysis and uses an LLM to determine the category.
     """
+    # Extract JSON block from the analysis output
     json_text = extract_json_from_markdown(raw_product_analysis)
     
     system_context_prompt = (
@@ -172,7 +175,7 @@ def classify_product_category(raw_product_analysis):
         category += text_segment.token.text
     return category.strip()
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     image_path = r"can.jpg"
     result = generate_product_analysis(image_path)
     print("Generated Product Analysis:")

@@ -15,7 +15,7 @@ text_generation_client = InferenceClient(
 
 
 def extract_json_from_markdown(text):
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    json_match = re.search(r"(?:json)?\s*(\{.*?\})\s*", text, re.DOTALL)
     if json_match:
         return json_match.group(1)
 
@@ -87,5 +87,5 @@ def generate_alternative_suggestion(product_analysis_json):
             {
                 "alternative_product": "Generic Sustainable Option",
                 "reason": "Failed to generate valid JSON; suggesting a generic alternative based on typical improvements.",
-            }
-        )
+       }
+)

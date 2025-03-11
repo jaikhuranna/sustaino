@@ -7,19 +7,19 @@ load_dotenv()
 
 DIY_CATEGORIES = {
     "plastic_bottle": [
-        {"name": "Bird Feeder", "youtube_link": "https://youtu.be/9DKzHucqY1I?si=OirtHI0-v22VEoJa"},
-        {"name": "Planter", "youtube_link": "https://youtube.com/shorts/TNmhYM4d3Z8?si=gve5k_GPGIh-oOZi"},
-        {"name": "Storage Container", "youtube_link": "https://youtu.be/N4aT-mN8Bb8?si=yuMtzeH7I05iOVUa"}
+        {"name": "Bird Feeder", "youtube_link": "https://www.youtube.com/watch?v=12345", "thumbnail": "https://img.youtube.com/vi/12345/0.jpg"},
+        {"name": "Planter", "youtube_link": "https://www.youtube.com/watch?v=67890", "thumbnail": "https://img.youtube.com/vi/67890/0.jpg"},
+        {"name": "Storage Container", "youtube_link": "https://www.youtube.com/watch?v=abcde", "thumbnail": "https://img.youtube.com/vi/abcde/0.jpg"}
     ],
     "aluminum_can": [
-        {"name": "Pen Holder", "youtube_link": "https://youtu.be/d8qPVmd3Wcw?si=zvx5j5wvBFdcECVZ"},
-        {"name": "Lantern", "youtube_link": "https://youtu.be/U9qBVGZnkyg?si=BsSrtE9Av7FdPTx0"},
-        {"name": "Wind Chime", "youtube_link": "https://youtube.com/shorts/Sj4OnEbPBjw?si=xfIKpP4f31bsHtAB"}
+        {"name": "Pen Holder", "youtube_link": "https://www.youtube.com/watch?v=xyz12", "thumbnail": "https://img.youtube.com/vi/xyz12/0.jpg"},
+        {"name": "Lantern", "youtube_link": "https://www.youtube.com/watch?v=pqr34", "thumbnail": "https://img.youtube.com/vi/pqr34/0.jpg"},
+        {"name": "Wind Chime", "youtube_link": "https://www.youtube.com/watch?v=lmn56", "thumbnail": "https://img.youtube.com/vi/lmn56/0.jpg"}
     ],
     "glass_bottle": [
-        {"name": "Vase", "youtube_link": "https://youtu.be/WxKZ8hhcmvg?si=e19don-JeyShnqDL"},
-        {"name": "Candle Holder", "youtube_link": "https://youtube.com/shorts/yBcjV0TsVGM?si=HWBwgP-mMc7OhfUe"},
-        {"name": "Terrarium", "youtube_link": "https://youtube.com/shorts/YRuZ4-7E9v4?si=i0JjQPqlAMbYxo1v"}
+        {"name": "Vase", "youtube_link": "https://www.youtube.com/watch?v=def78", "thumbnail": "https://img.youtube.com/vi/def78/0.jpg"},
+        {"name": "Candle Holder", "youtube_link": "https://www.youtube.com/watch?v=ghi90", "thumbnail": "https://img.youtube.com/vi/ghi90/0.jpg"},
+        {"name": "Terrarium", "youtube_link": "https://www.youtube.com/watch?v=jkl12", "thumbnail": "https://img.youtube.com/vi/jkl12/0.jpg"}
     ],
     "cardboard_box": [
         {"name": "Storage Bin", "youtube_link": "https://www.youtube.com/watch?v=mno34", "thumbnail": "https://img.youtube.com/vi/mno34/0.jpg"},
@@ -94,4 +94,4 @@ def generate_diy_suggestions(product_analysis_output):
     # Return DIY ideas directly from hardcoded categories
     diy_ideas = DIY_CATEGORIES.get(category, [])
     
-    return json.dumps({"diy_ideas": diy_ideas})
+    return json.dumps({"diy_ideas":diy_ideas})
