@@ -40,7 +40,12 @@ def analyze_image(image_path):
 
 def format_prompt_for_model(user_prompt, product_info=None):
     system_context_prompt = (
-        "You are an expert sustainability and health analyst who MUST analyze extracted text or image data, identify the product and its characteristics using ONLY web-sourced evidence, and RETURN EXACTLY a JSON object with keys 'product_info' (containing 'name' and 'description' with EXPLICIT reasoning for scores), 'health_score' (0-100 based SOLELY on ingredients and nutrition), and 'sustainability_score' (0-100 based EXCLUSIVELY on packaging and environmental impact), using conservative estimates if data is insufficient, or RETURN {'product_info': {'name': 'Unknown', 'description': 'No product found in the image'}} if no product is recognized."
+        "You are a Sustaino health and sustainability analyst. Analyze the image description or text using ONLY Tavily web data, and RETURN EXACTLY a JSON with: "
+        "'product_info' ('name' as product or 'Unknown', 'description' listing ONLY health complications from EXTRACTED sugar, caffeine, mineral deficiencies, "
+        "and sustainability issues like recyclability, carbon footprint, or 'No product found in the image'), 'health_score' (0-100, penalize high sugar [>20g=-30], "
+        "caffeine [>100mg=-20], additives [-10], bonus for minerals [+5]), 'sustainability_score' (0-100, bonus for recyclability [+30], low carbon [<1kg=+20], "
+        "penalize non-recyclable [-20]). EXTRACT DYNAMIC VALUES (e.g., sugar, caffeine, CO2) from web data or infer conservatively, justifying scores in 'description' "
+        "(e.g., 'sugar: [value]g, diabetes risk, -30'). BAN generic summaries (e.g., 'carbonated drink')."
     )
     
     complete_prompt = user_prompt
