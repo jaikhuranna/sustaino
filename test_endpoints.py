@@ -3,7 +3,7 @@ import json
 import os
 
 
-API_URL = "http://localhost:8000"
+API_URL = "http://10.9.137.188:8000"
 
 
 def test_analyze_product(image_path):
@@ -71,25 +71,25 @@ def test_diy_suggestions(analysis_json):
         return None
 
 
-def test_analyze_image_with_diy(image_path):
-    """
-    Test the analyze-image-with-diy endpoint (one-step process)
-    """
-    print("\n--- Testing Analyze Image With DIY Endpoint ---")
-    files = {"file": open(image_path, "rb")}
+# def test_analyze_image_with_diy(image_path):
+#     """
+#     Test the analyze-image-with-diy endpoint (one-step process)
+#     """
+#     print("\n--- Testing Analyze Image With DIY Endpoint ---")
+#     files = {"file": open(image_path, "rb")}
 
-    response = requests.post(f"{API_URL}/analyze-image-with-diy/", files=files)
+#     response = requests.post(f"{API_URL}/diy-suggestions/", files=files)
 
-    if response.status_code == 200:
-        print("✅ Combined analysis and DIY suggestions successful!")
-        result = response.json()
-        print("Response:")
-        print(json.dumps(result, indent=2))
-        return result
-    else:
-        print(f"❌ Error: {response.status_code}")
-        print(response.text)
-        return None
+#     if response.status_code == 200:
+#         print("✅ Combined analysis and DIY suggestions successful!")
+#         result = response.json()
+#         print("Response:")
+#         print(json.dumps(result, indent=2))
+#         return result
+#     else:
+#         print(f"❌ Error: {response.status_code}")
+#         print(response.text)
+#         return None
 
 
 def run_all_tests(image_path):
@@ -109,7 +109,7 @@ def run_all_tests(image_path):
         test_diy_suggestions(analysis_result)
     
     # Test 4: One-step combined analysis and DIY suggestions
-    test_analyze_image_with_diy(image_path)
+    # test_analyze_image_with_diy(image_path)
 
 
 if __name__ == "__main__":

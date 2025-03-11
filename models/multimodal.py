@@ -176,7 +176,7 @@ def classify_product_category(raw_product_analysis):
     return category.strip()
 
 if __name__ == "__main__":
-    image_path = r"models\can.jpg"
+    image_path = r"can.jpg"
     result = generate_product_analysis(image_path)
     print("Generated Product Analysis:")
     print(result)
