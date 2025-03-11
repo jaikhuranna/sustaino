@@ -1,3 +1,5 @@
-models/.env/
-models/__pycache__
-__pycache__
+__pycache__/main.cpython-311.pyc
+models/__pycache__/alternatives.cpython-311.pyc
+models/__pycache__/multimodal.cpython-311.pyc
+models/__pycache__/product_analyzer.cpython-311.pyc
+models/.env

@@ -27,27 +27,6 @@ def test_analyze_product(image_path):
         return None
 
 
-def test_suggest_alternatives(image_path):
-    """
-    Test the suggest-alternatives endpoint
-    """
-    print("\n--- Testing Suggest Alternatives Endpoint ---")
-    files = {"file": open(image_path, "rb")}
-
-    response = requests.post(f"{API_URL}/suggest-alternatives/", files=files)
-
-    if response.status_code == 200:
-        print("✅ Alternatives suggestion successful!")
-        result = response.json()
-        print("Response:")
-        print(json.dumps(result, indent=2))
-        return result
-    else:
-        print(f"❌ Error: {response.status_code}")
-        print(response.text)
-        return None
-
-
 def test_analyze_with_alternatives(analysis_json):
     """
     Test the analyze-with-alternatives endpoint using an existing analysis
@@ -70,16 +49,81 @@ def test_analyze_with_alternatives(analysis_json):
         return None
 
 
-if __name__ == "__main__":
+def test_diy_suggestions(analysis_json):
+    """
+    Test the diy-suggestions endpoint using an existing analysis
+    """
+    print("\n--- Testing DIY Suggestions Endpoint ---")
 
-    test_image_path = "models\can.jpg"
+    response = requests.post(
+        f"{API_URL}/diy-suggestions/", json=analysis_json
+    )
+
+    if response.status_code == 200:
+        print("✅ DIY suggestions from existing analysis successful!")
+        result = response.json()
+        print("Response:")
+        print(json.dumps(result, indent=2))
+        return result
+    else:
+        print(f"❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+
+def test_analyze_image_with_diy(image_path):
+    """
+    Test the analyze-image-with-diy endpoint (one-step process)
+    """
+    print("\n--- Testing Analyze Image With DIY Endpoint ---")
+    files = {"file": open(image_path, "rb")}
+
+    response = requests.post(f"{API_URL}/analyze-image-with-diy/", files=files)
+
+    if response.status_code == 200:
+        print("✅ Combined analysis and DIY suggestions successful!")
+        result = response.json()
+        print("Response:")
+        print(json.dumps(result, indent=2))
+        return result
+    else:
+        print(f"❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+
+def run_all_tests(image_path):
+    """
+    Run all tests in sequence
+    """
+    print("\n=== RUNNING ALL ENDPOINT TESTS ===")
+    
+    # Test 1: Basic product analysis
+    analysis_result = test_analyze_product(image_path)
+    
+    if analysis_result:
+        # Test 2: Get alternative product suggestions
+        test_analyze_with_alternatives(analysis_result)
+        
+        # Test 3: Get DIY suggestions from existing analysis
+        test_diy_suggestions(analysis_result)
+    
+    # Test 4: One-step combined analysis and DIY suggestions
+    test_analyze_image_with_diy(image_path)
+
+
+if __name__ == "__main__":
+    test_image_path = "models/can.jpg"
 
     if not os.path.exists(test_image_path):
         print(f"Error: File not found at {test_image_path}")
         exit(1)
 
-    analysis_result = test_analyze_product(test_image_path)
-    test_suggest_alternatives(test_image_path)
-
-    if analysis_result:
-        test_analyze_with_alternatives(analysis_result)
+    run_all_tests(test_image_path)
+    
+    # Alternatively, you can run individual tests:
+    # analysis_result = test_analyze_product(test_image_path)
+    # if analysis_result:
+    #     test_analyze_with_alternatives(analysis_result)
+    #     test_diy_suggestions(analysis_result)
+    # test_analyze_image_with_diy(test_image_path)
