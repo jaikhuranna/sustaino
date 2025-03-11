@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>137704400415-c034rsmvo08337662ku1hojlvmo611uf.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.137704400415-c034rsmvo08337662ku1hojlvmo611uf</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCFdoKLYoCjabT9bn4uroNNtK3QkLetzgY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>137704400415</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>git.unstash.Sustaino</string>
+	<key>PROJECT_ID</key>
+	<string>eventa-4et7</string>
+	<key>STORAGE_BUCKET</key>
+	<string>eventa-4et7.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:137704400415:ios:52ed79d8d927120c16572a</string>
+</dict>
+</plist>
