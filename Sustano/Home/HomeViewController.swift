@@ -223,8 +223,13 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             }
             
             do {
+                if let responseString = String(data: data, encoding: .utf8) {
+                    ProductDetailsViewController.jason = responseString
+                }
+                    
                 let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
                 print("API Response: \(jsonResponse)")
+//                ProductDetailsViewController.jason = jsonResponse as? String
                 completion(true)
             } catch {
                 print("Failed to parse API response: \(error)")
