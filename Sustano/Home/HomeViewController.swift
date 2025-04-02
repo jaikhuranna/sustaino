@@ -165,8 +165,9 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
     }
     
+    
     private func sendImageToAPI(imageData: Data, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "http://10.9.168.56:8000/analyze-product/") else {
+        guard let url = URL(string: "http://192.168.207.84:8000/analyze-product/") else {
             completion(false)
             return
         }
@@ -192,21 +193,68 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
                 return
             }
 
-            // 🚀 Print raw response
+            // Print raw response for debugging
             if let responseString = String(data: data, encoding: .utf8) {
                 print("🚀 Raw API Response: \n\(responseString)")
             }
 
             do {
-                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-                print("✅ Parsed JSON: \(jsonResponse)")
-
-                if let jsonDict = jsonResponse as? [String: Any] {
-                    DataModel.productDetails = DataModel().processJSONResponse(data)
-                    DataModel.alternativeProduct = DataModel().processAlternativesJSON(data)
-                    DataModel.diyIdeas = DataModel().processDIYIdeasJSON(data)
+                // First parse the outer JSON wrapper
+                guard let jsonWrapper = try JSONSerialization.jsonObject(with: data, options: []) as? [String: String],
+                      let resultString = jsonWrapper["result"] else {
+                    print("❌ Invalid JSON format in response")
+                    completion(false)
+                    return
                 }
-
+                
+                // Extract the JSON from the code block
+                var cleanedResultString = resultString
+                
+                // Remove markdown code block delimiters if present
+                if cleanedResultString.contains("```json") {
+                    let parts = cleanedResultString.components(separatedBy: "```json\n")
+                    if parts.count > 1 {
+                        let jsonPart = parts[1]
+                        cleanedResultString = jsonPart.components(separatedBy: "\n```")[0]
+                    }
+                }
+                
+                // Remove </s> tag if present
+                cleanedResultString = cleanedResultString.replacingOccurrences(of: "</s>", with: "")
+                
+                print("📝 Cleaned JSON string: \(cleanedResultString)")
+                
+                // Now parse the inner JSON string
+                guard let resultData = cleanedResultString.data(using: .utf8) else {
+                    print("❌ Failed to convert string to data")
+                    completion(false)
+                    return
+                }
+                
+                let resultJSON = try JSONSerialization.jsonObject(with: resultData, options: [])
+                print("✅ Parsed JSON: \(resultJSON)")
+                
+                // Create the product details directly here
+                if let jsonDict = resultJSON as? [String: Any],
+                   let productInfo = jsonDict["product_info"] as? [String: Any],
+                   let name = productInfo["name"] as? String,
+                   let description = productInfo["description"] as? String,
+                   let healthScore = jsonDict["health_score"] as? Int,
+                   let sustainabilityScore = jsonDict["sustainability_score"] as? Int {
+                    
+                    let details = DataModel.ProductDetails(
+                        name: name,
+                        description: description,
+                        healthScore: healthScore,
+                        sustainabilityScore: sustainabilityScore
+                    )
+                    
+                    DataModel.productDetails = details
+                    print("✅ Created product details: \(name)")
+                } else {
+                    print("❌ Missing expected JSON fields")
+                }
+                
                 completion(true)
             } catch {
                 print("❌ Failed to parse API response: \(error.localizedDescription)")
@@ -214,6 +262,126 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             }
         }.resume()
     }
+    
+    
+//    private func sendImageToAPI(imageData: Data, completion: @escaping (Bool) -> Void) {
+//        guard let url = URL(string: "http://192.168.207.84:8000/analyze-product/") else {
+//            completion(false)
+//            return
+//        }
+//
+//        let boundary = UUID().uuidString
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+//
+//        var body = Data()
+//        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+//        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+//        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+//        body.append(imageData)
+//        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+//
+//        request.httpBody = body
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            guard let data = data, error == nil else {
+//                print("❌ API Error: \(error?.localizedDescription ?? "Unknown error")")
+//                completion(false)
+//                return
+//            }
+//
+//            // Print raw response for debugging
+//            if let responseString = String(data: data, encoding: .utf8) {
+//                print("🚀 Raw API Response: \n\(responseString)")
+//            }
+//
+//            do {
+//                // First parse the outer JSON wrapper
+//                guard let jsonWrapper = try JSONSerialization.jsonObject(with: data, options: []) as? [String: String],
+//                      let resultString = jsonWrapper["result"] else {
+//                    print("❌ Invalid JSON format in response")
+//                    completion(false)
+//                    return
+//                }
+//                
+//                // Remove the </s> tag if present
+//                let cleanedResultString = resultString.replacingOccurrences(of: "</s>", with: "")
+//                
+//                // Now parse the inner JSON string
+//                guard let resultData = cleanedResultString.data(using: .utf8),
+//                      let resultJSON = try JSONSerialization.jsonObject(with: resultData, options: []) as? [String: Any] else {
+//                    print("❌ Failed to parse inner JSON")
+//                    completion(false)
+//                    return
+//                }
+//                
+//                print("✅ Parsed JSON: \(resultJSON)")
+//                
+//                // Now process the properly parsed JSON
+//                DataModel.productDetails = DataModel().processJSONResponse(resultData)
+//                DataModel.alternativeProduct = DataModel().processAlternativesJSON(resultData)
+//                DataModel.diyIdeas = DataModel().processDIYIdeasJSON(resultData)
+//                
+//                completion(true)
+//            } catch {
+//                print("❌ Failed to parse API response: \(error.localizedDescription)")
+//                completion(false)
+//            }
+//        }.resume()
+//    }
+//  
+//    
+//
+//    private func sendImageToAPI(imageData: Data, completion: @escaping (Bool) -> Void) {
+//        guard let url = URL(string: "http://192.168.207.84:8000/analyze-product/") else {
+//            completion(false)
+//            return
+//        }
+//
+//        let boundary = UUID().uuidString
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+//
+//        var body = Data()
+//        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+//        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+//        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+//        body.append(imageData)
+//        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+//
+//        request.httpBody = body
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            guard let data = data, error == nil else {
+//                print("❌ API Error: \(error?.localizedDescription ?? "Unknown error")")
+//                completion(false)
+//                return
+//            }
+//
+//            // 🚀 Print raw response
+//            if let responseString = String(data: data, encoding: .utf8) {
+//                print("🚀 Raw API Response: \n\(responseString)")
+//            }
+//
+//            do {
+//                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+//                print("✅ Parsed JSON: \(jsonResponse)")
+//
+//                if let jsonDict = jsonResponse as? [String: Any] {
+//                    DataModel.productDetails = DataModel().processJSONResponse(data)
+//                    DataModel.alternativeProduct = DataModel().processAlternativesJSON(data)
+//                    DataModel.diyIdeas = DataModel().processDIYIdeasJSON(data)
+//                }
+//
+//                completion(true)
+//            } catch {
+//                print("❌ Failed to parse API response: \(error.localizedDescription)")
+//                completion(false)
+//            }
+//        }.resume()
+//    }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetails",
            let destinationVC = segue.destination as? ProductDetailsViewController {

@@ -1,19 +1,9 @@
-# sustaino-main/models/diy.py
 import os
 import json
-import re # Import re for cleaning
 from dotenv import load_dotenv
-# Import necessary functions carefully
-try:
-    from .multimodal import classify_product_category, extract_json_from_markdown
-except ImportError as e:
-     raise ImportError(f"Could not import required functions from .multimodal: {e}") from e
-
-import logging
+from .multimodal import classify_product_category, generate_product_analysis, extract_json_from_markdown
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 DIY_CATEGORIES = {
     "plastic_bottle": [
@@ -65,120 +55,43 @@ DIY_CATEGORIES = {
         {"name": "Pin Cushion", "youtube_link": "https://www.youtube.com/watch?v=opq90", "thumbnail": "https://img.youtube.com/vi/opq90/0.jpg"},
         {"name": "Stamp Block", "youtube_link": "https://www.youtube.com/watch?v=rst12", "thumbnail": "https://img.youtube.com/vi/rst12/0.jpg"},
         {"name": "Kids' Puzzle", "youtube_link": "https://www.youtube.com/watch?v=uvw34", "thumbnail": "https://img.youtube.com/vi/uvw34/0.jpg"}
-    ],
-    # Add defaults for fallback cases
-    "unknown_category": [],
-    "classification_skipped_due_to_error": []
+    ]
 }
 
-def generate_diy_suggestions(product_analysis_input_str):
+def generate_diy_suggestions(product_analysis_output):
     """
-    Generate DIY suggestions based on product analysis string.
-    Handles error input and uses hardcoded categories based on classification.
-
+    Generate DIY suggestions based on product analysis
+    
     Args:
-        product_analysis_input_str (str): The raw product analysis text/JSON string.
-
+        product_analysis_output (str): The raw product analysis text
+        
     Returns:
-        str: JSON string containing DIY suggestions list and a status message.
+        str: JSON string containing DIY suggestions
     """
-    logging.info("Generating DIY suggestions...")
-    analysis_data = None
-    input_had_error = False
-    original_error_msg = ""
-
-    if not isinstance(product_analysis_input_str, str):
-         logging.error("Invalid input type for generate_diy_suggestions, expected string.")
-         return json.dumps({
-             "diy_ideas": [],
-             "message": "Invalid input type received."
-         })
-
-    # --- Check if the input string itself represents an error ---
+    # Extract clean JSON
+    product_json = extract_json_from_markdown(product_analysis_output)
+    
     try:
-        potential_error = json.loads(product_analysis_input_str)
-        if isinstance(potential_error, dict) and "error" in potential_error:
-            logging.warning("Input analysis contains an error. Skipping DIY generation.")
-            input_had_error = True
-            original_error_msg = potential_error.get("error", "Unknown error in input")
+        product_data = json.loads(product_json)
+        sustainability_score = product_data.get('sustainability_score', 0)
+        
+        if sustainability_score >= 70:
             return json.dumps({
                 "diy_ideas": [],
-                "message": f"Cannot suggest DIY: Input analysis failed. ({original_error_msg[:100]}...)",
+                "message": "Sustainability score >= 70, no DIY suggestions provided."
             })
-        analysis_data = potential_error # Store parsed data if valid
-    except json.JSONDecodeError:
-        # Input is not error JSON, might be the raw LLM output or already extracted JSON
-        logging.info("Input for DIY is not error JSON, attempting extraction.")
-        pass
-    # ---
-
-    # Extract or use the potentially already parsed JSON text
-    if analysis_data:
-         json_content_str = json.dumps(analysis_data) # Use already parsed data
-    else:
-         json_content_str = extract_json_from_markdown(product_analysis_input_str)
-         logging.info(f"Extracted JSON content for DIY: {json_content_str[:200]}...")
-         # Try parsing the extracted string now to get sustainability score
-         try:
-             analysis_data = json.loads(json_content_str)
-             logging.info("Successfully parsed extracted product data for DIY.")
-         except json.JSONDecodeError as e:
-            logging.error(f"Error parsing extracted product analysis JSON for DIY: {e}")
-            logging.error(f"Problematic extracted string: {json_content_str[:500]}")
-            return json.dumps({
-                "diy_ideas": [],
-                "message": f"Error parsing extracted product data for DIY: {str(e)}"
-            })
-
-    # Check sustainability score threshold using parsed data
-    try:
-        # Ensure analysis_data is a dict before accessing keys
-        if not isinstance(analysis_data, dict):
-             raise TypeError("Parsed analysis data is not a dictionary.")
-
-        # Use .get for safer access, default to a high score if missing to avoid unnecessary DIY
-        sustainability_score = analysis_data.get('sustainability_score', 100)
-
-        # Ensure score is an integer or float for comparison
-        if isinstance(sustainability_score, (int, float)):
-            if sustainability_score >= 70:
-                 logging.info(f"Sustainability score ({sustainability_score}) >= 70. No DIY needed.")
-                 return json.dumps({
-                     "diy_ideas": [],
-                     "message": f"Product is sustainable (Score: {sustainability_score} >= 70), no DIY suggestions needed."
-                 })
-        else:
-             logging.warning(f"Sustainability score has unexpected type: {type(sustainability_score)}. Assuming high score.")
-             # If score is not a number, assume it's sustainable to be safe
-             return json.dumps({
-                 "diy_ideas": [],
-                 "message": "Could not determine numerical sustainability score. Assuming sustainable."
-             })
-
-    except (TypeError, KeyError) as e:
-         logging.error(f"Error accessing sustainability score: {e}")
-         return json.dumps({
-             "diy_ideas": [],
-             "message": f"Could not read sustainability score from analysis data: {e}"
-         })
-
-
-    # Classify the category using the original input string
-    # classify_product_category should handle potential errors internally
-    category = classify_product_category(product_analysis_input_str)
-    logging.info(f"Classified category for DIY: {category}")
-
+    except json.JSONDecodeError as e:
+        return json.dumps({
+            "diy_ideas": [],
+            "message": f"Error parsing product data: {str(e)}"
+        })
+    
+    # Classify the category
+    category = classify_product_category(product_json).lower().strip().replace("</s>", "")
+    
+    print("Classified category:", category)  # for debugging
+    
     # Return DIY ideas directly from hardcoded categories
-    diy_ideas = DIY_CATEGORIES.get(category, []) # Default to empty list
-
-    # Generate appropriate message based on classification result
-    message = f"Showing DIY ideas for category: {category}"
-    if category == "unknown_category":
-        message = "Could not determine product category accurately. No specific DIY ideas available."
-        diy_ideas = [] # Ensure empty list for unknown
-    elif category == "classification_skipped_due_to_error":
-         message = "Classification skipped due to error in analysis. No DIY ideas provided."
-         diy_ideas = [] # Ensure empty list
-
-    return json.dumps({"diy_ideas": diy_ideas, "message": message})
-
+    diy_ideas = DIY_CATEGORIES.get(category, [])
+    
+    return json.dumps({"diy_ideas":diy_ideas})

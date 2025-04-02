@@ -16,52 +16,64 @@ class ProductDetailsViewController: UIViewController {
     var alternativeProduct: DataModel.AlternativeProduct?
     var diyIdeas: [DataModel.DIYIdea] = []
 
-    @IBOutlet var tunharaTExt: UILabel!
-    @IBOutlet var ProductUIimageView: UIImageView!
+    @IBOutlet var productDescriptionLabel: UILabel! // Renamed for clarity
+    @IBOutlet var productImageView: UIImageView! // Renamed for clarity
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
 
-        ProductUIimageView.layer.cornerRadius = 16
-        ProductUIimageView.image = HomeViewController.capturedImage
-        ProductDetailsViewController.productImage = ProductUIimageView.image
+        // Set up image view
+        productImageView.layer.cornerRadius = 16
+        productImageView.image = HomeViewController.capturedImage
+        ProductDetailsViewController.productImage = productImageView.image
 
-        if let details = productDetails {
-            displayStructuredProductDetails(details)
-        } else {
-            tunharaTExt.text = DataModel.productDetails?.description
-//            tunharaTExt.text = ProductDetailsViewController.jason ?? "A popular carbonated soft drink containing high amounts of sugar and caffeine, contributing to a lower health score. The product comes in a plastic bottle, which has a moderate sustainability score due to its recyclability but contributes to plastic waste."
-        }
+        // Display product details
+        updateProductDetails()
     }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
-        print("✅ Product Details in View: \(String(describing: productDetails))")
-
-        if let details = productDetails {
-            displayStructuredProductDetails(details)
-        } else {
-            tunharaTExt.text = DataModel.productDetails?.description
-//            tunharaTExt.text = ProductDetailsViewController.jason ?? "A popular carbonated soft drink containing high amounts of sugar and caffeine, contributing to a lower health score. The product comes in a plastic bottle, which has a moderate sustainability score due to its recyclability but contributes to plastic waste."
-        }
+        
+        // Ensure product details are displayed
+        updateProductDetails()
     }
-
     
     @IBAction func tapRescan(_ sender: Any) {
         dismiss(animated: true)
     }
+    
+    // Single method to update UI with product details
+    private func updateProductDetails() {
+        // First try to use the details passed through segue
+        if let details = productDetails {
+            displayStructuredProductDetails(details)
+            print("✅ Product Details from segue: \(details.name)")
+        }
+        // Fall back to static property if segue data is missing
+        else if let staticDetails = DataModel.productDetails {
+            displayStructuredProductDetails(staticDetails)
+            print("✅ Product Details from static: \(staticDetails.name)")
+        }
+        // Last resort fallback
+        else {
+            productDescriptionLabel.text = "Product details not available"
+            print("❌ No product details available")
+        }
+    }
 
     func displayStructuredProductDetails(_ details: DataModel.ProductDetails) {
-        let formattedText = """
-        Product Name: \(details.name)
-        
-        Description: \(details.description)
-        
-        Health Score: \(details.healthScore)/100
-        Sustainability Score: \(details.sustainabilityScore)/100
-        """
+//        let formattedText = """
+//        Product Name: \(details.name)
+//        
+//        Description: \(details.description)
+//        
+//        Health Score: \(details.healthScore)/100
+//        Sustainability Score: \(details.sustainabilityScore)/100
+//        """
 
-        tunharaTExt.text = formattedText
+        navigationController?.title = details.name
+        productDescriptionLabel.text  = details.description;
+//        productDescriptionLabel.text = formattedText
     }
 }

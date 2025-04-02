@@ -23,32 +23,56 @@ class DataModel {
         let sustainabilityScore: Int
     }
     
+//    func processJSONResponse(_ jsonData: Data) -> ProductDetails? {
+//        do {
+//            if let outerJSON = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+//               let resultString = outerJSON["result"] as? String {
+//                
+//                if let innerData = resultString.data(using: .utf8),
+//                   let innerJSON = try JSONSerialization.jsonObject(with: innerData, options: []) as? [String: Any] {
+//                    
+//                    if let productInfo = innerJSON["product_info"] as? [String: Any],
+//                       let name = productInfo["name"] as? String,
+//                       let description = productInfo["description"] as? String,
+//                       let healthScore = innerJSON["health_score"] as? Int,
+//                       let sustainabilityScore = innerJSON["sustainability_score"] as? Int {
+//                        
+//                        return ProductDetails(
+//                            name: name,
+//                            description: description,
+//                            healthScore: healthScore,
+//                            sustainabilityScore: sustainabilityScore
+//                        )
+//                    }
+//                }
+//            }
+//        } catch {
+//            print(" Error processing JSON: \(error.localizedDescription)")
+//        }
+//        return nil
+//    }
+    
     func processJSONResponse(_ jsonData: Data) -> ProductDetails? {
         do {
-            if let outerJSON = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
-               let resultString = outerJSON["result"] as? String {
+            // Try to parse the JSON directly first
+            if let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+               let productInfo = json["product_info"] as? [String: Any],
+               let name = productInfo["name"] as? String,
+               let description = productInfo["description"] as? String,
+               let healthScore = json["health_score"] as? Int,
+               let sustainabilityScore = json["sustainability_score"] as? Int {
                 
-                if let innerData = resultString.data(using: .utf8),
-                   let innerJSON = try JSONSerialization.jsonObject(with: innerData, options: []) as? [String: Any] {
-                    
-                    if let productInfo = innerJSON["product_info"] as? [String: Any],
-                       let name = productInfo["name"] as? String,
-                       let description = productInfo["description"] as? String,
-                       let healthScore = innerJSON["health_score"] as? Int,
-                       let sustainabilityScore = innerJSON["sustainability_score"] as? Int {
-                        
-                        return ProductDetails(
-                            name: name,
-                            description: description,
-                            healthScore: healthScore,
-                            sustainabilityScore: sustainabilityScore
-                        )
-                    }
-                }
+                return ProductDetails(
+                    name: name,
+                    description: description,
+                    healthScore: healthScore,
+                    sustainabilityScore: sustainabilityScore
+                )
             }
         } catch {
-            print(" Error processing JSON: \(error.localizedDescription)")
+            print("Error processing direct JSON: \(error.localizedDescription)")
         }
+        
         return nil
     }
     
