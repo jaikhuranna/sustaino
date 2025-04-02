@@ -60,6 +60,7 @@ class ProductDetailsViewController: UIViewController {
             productDescriptionLabel.text = "Product details not available"
             print("❌ No product details available")
         }
+        
     }
 
     func displayStructuredProductDetails(_ details: DataModel.ProductDetails) {
@@ -72,7 +73,7 @@ class ProductDetailsViewController: UIViewController {
 //        Sustainability Score: \(details.sustainabilityScore)/100
 //        """
 
-        navigationController?.title = details.name
+        self.navigationItem.title = details.name
         productDescriptionLabel.text  = details.description;
 //        productDescriptionLabel.text = formattedText
     }
