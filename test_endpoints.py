@@ -3,7 +3,7 @@ import json
 import os
 
 
-API_URL = "http://10.9.137.188:8000"
+API_URL = "http://0.0.0.0:8000"
 
 
 def test_analyze_product(image_path):

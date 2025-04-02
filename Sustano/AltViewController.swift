@@ -15,8 +15,7 @@ class AltViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        productnamelbel.text = alternativeProduct?.productName
-        descriptionLabel.text = alternativeProduct?.reason
+   
         
         
         

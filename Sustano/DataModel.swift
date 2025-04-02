@@ -5,21 +5,17 @@ import UIKit
 // MARK: - Data Model
 class DataModel {
     
-    // Stores last scanned images for history
     static var lastScansImages: [UIImage] = []
     
-    // Stores last scanned texts for history
-    static var lastScansTexts: [String] = []
+    static var lastScansText : [String] = []
+    static var lastScansTexts: [String] = ["Lays"]
     
-    // Parsed API Data
     static var productDetails: ProductDetails?
     static var alternativeProduct: AlternativeProduct?
     static var diyIdeas: [DIYIdea] = []
     
-    // Uploaded Image URL (for Firebase)
     var uploadedImageURL: String?
     
-    // MARK: - Product Details Model
     struct ProductDetails {
         let name: String
         let description: String
@@ -51,12 +47,11 @@ class DataModel {
                 }
             }
         } catch {
-            print("❌ Error processing JSON: \(error.localizedDescription)")
+            print(" Error processing JSON: \(error.localizedDescription)")
         }
         return nil
     }
     
-    // MARK: - Alternative Product Model
     struct AlternativeProduct {
         let productName: String
         let reason: String
@@ -78,12 +73,11 @@ class DataModel {
                 }
             }
         } catch {
-            print("❌ Error processing Alternatives JSON: \(error.localizedDescription)")
+            print(" Error processing Alternatives JSON: \(error.localizedDescription)")
         }
         return nil
     }
     
-    // MARK: - DIY Idea Model
     struct DIYIdea {
         let name: String
         let youtubeLink: String
@@ -107,13 +101,11 @@ class DataModel {
                 }
             }
         } catch {
-            print("❌ Error processing DIY Ideas JSON: \(error.localizedDescription)")
+            print(" Error processing DIY Ideas JSON: \(error.localizedDescription)")
         }
         return diyIdeas
     }
     
-    // MARK: - Firebase Storage Handling
-    /// Upload an image to Firebase Storage
     func uploadImage(filePath: String, completion: @escaping (Bool, String?) -> Void) {
         let storage = Storage.storage()
         let storageRef = storage.reference()
@@ -123,17 +115,17 @@ class DataModel {
         
         imageRef.putFile(from: fileURL, metadata: nil) { metadata, error in
             if let error = error {
-                print("❌ Upload failed: \(error.localizedDescription)")
+                print(" Upload failed: \(error.localizedDescription)")
                 completion(false, nil)
                 return
             }
             
             imageRef.downloadURL { (url, error) in
                 if let error = error {
-                    print("❌ Failed to retrieve download URL: \(error.localizedDescription)")
+                    print(" Failed to retrieve download URL: \(error.localizedDescription)")
                     completion(false, nil)
                 } else if let imageURL = url {
-                    print("✅ Upload successful: \(imageURL)")
+                    print(" Upload successful: \(imageURL)")
                     self.uploadedImageURL = imageURL.absoluteString
                     completion(true, imageURL.absoluteString)
                 }
@@ -141,7 +133,6 @@ class DataModel {
         }
     }
     
-    /// Handle button tap to upload image
     func checkButtonTapped(filePath: String, completion: @escaping (String?) -> Void) {
         uploadImage(filePath: filePath) { success, url in
             DispatchQueue.main.async {

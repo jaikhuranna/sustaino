@@ -166,7 +166,7 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     }
     
     private func sendImageToAPI(imageData: Data, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "http://10.9.137.188:8000/analyze-product/") else {
+        guard let url = URL(string: "http://10.9.168.56:8000/analyze-product/") else {
             completion(false)
             return
         }
@@ -214,21 +214,15 @@ class HomeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             }
         }.resume()
     }
-    
-
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetails",
            let destinationVC = segue.destination as? ProductDetailsViewController {
             
-            // Send both raw JSON and structured API data
             destinationVC.productDetails = DataModel.productDetails
             destinationVC.alternativeProduct = DataModel.alternativeProduct
             destinationVC.diyIdeas = DataModel.diyIdeas
 
-            // Store raw API response as fallback
             ProductDetailsViewController.jason = DataModel.lastScansTexts.last
         }
     }
-
 }
