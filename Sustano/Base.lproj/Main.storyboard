@@ -410,7 +410,7 @@
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="productDescriptionLabel" destination="t63-Ze-z7b" id="OMQ-UR-Dhy"/>
-                        <outlet property="productImageView" destination="CRr-wv-IdP" id="ztZ-o4-v0P"/>
+                        <outlet property="productImageView" destination="CRr-wv-IdP" id="Nas-jS-hQ5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qj9-Hx-iat" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
